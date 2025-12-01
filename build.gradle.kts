@@ -1,7 +1,7 @@
 plugins {
     java
-    id("org.springframework.boot") version "3.4.0"
-    id("io.spring.dependency-management") version "1.1.6"
+    id("org.springframework.boot") version "4.0.0"
+    id("io.spring.dependency-management") version "1.1.7"
 }
 
 group = "com.pragma"
@@ -23,36 +23,51 @@ repositories {
     mavenCentral()
 }
 
+extra.apply {
+    set("springdocVersion", "3.0.0")
+    set("mapstructVersion", "1.6.2")
+    set("jjwtVersion", "0.12.5")
+    set("postgresVersion", "42.7.3")
+    set("lombokVersion", "1.18.34")
+    set("lombokMapstructBindingVersion", "0.2.0")
+    set("openfeignVersion", "5.0.0")
+}
+
 dependencies {
-    // Spring Boot Starters
+    // Compilation and Runtime
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-security")
-    
-    // PostgreSQL
-    runtimeOnly("org.postgresql:postgresql")
-    
+
     // OpenAPI / Swagger
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
-    
-    // OpenFeign para comunicación entre microservicios
-    implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.1.3")
-    
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:${property("springdocVersion")}")
+
+    // OpenFeign for microservices communication
+    implementation("org.springframework.cloud:spring-cloud-starter-openfeign:${property("openfeignVersion")}")
+
+    // New: Add actuator to satisfy lifecycle auto-configuration dependencies
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+
     // MapStruct
-    implementation("org.mapstruct:mapstruct:1.6.3")
-    annotationProcessor("org.mapstruct:mapstruct-processor:1.6.3")
-    
-    // Lombok
-    compileOnly("org.projectlombok:lombok")
-    annotationProcessor("org.projectlombok:lombok")
-    annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
-    
+    implementation("org.mapstruct:mapstruct:${property("mapstructVersion")}")
+
     // JWT
-    implementation("io.jsonwebtoken:jjwt-api:0.12.6")
-    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
-    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
-    
+    implementation("io.jsonwebtoken:jjwt-api:${property("jjwtVersion")}")
+
+    // Runtime Only
+    runtimeOnly("org.postgresql:postgresql:${property("postgresVersion")}")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:${property("jjwtVersion")}")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:${property("jjwtVersion")}")
+
+    // Compile Only
+    compileOnly("org.projectlombok:lombok:${property("lombokVersion")}")
+
+    // Annotation Processors
+    annotationProcessor("org.mapstruct:mapstruct-processor:${property("mapstructVersion")}")
+    annotationProcessor("org.projectlombok:lombok:${property("lombokVersion")}")
+    annotationProcessor("org.projectlombok:lombok-mapstruct-binding:${property("lombokMapstructBindingVersion")}")
+
     // Testing
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
