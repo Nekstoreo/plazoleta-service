@@ -1,5 +1,6 @@
 package com.pragma.plazoleta.application.handler;
 
+import com.pragma.plazoleta.application.dto.request.DishActiveRequestDto;
 import com.pragma.plazoleta.application.dto.request.DishRequestDto;
 import com.pragma.plazoleta.application.dto.request.DishUpdateRequestDto;
 import com.pragma.plazoleta.application.dto.response.DishResponseDto;
@@ -34,6 +35,16 @@ public class DishHandler implements IDishHandler {
                 dishId,
                 updateRequestDto.getPrice(),
                 updateRequestDto.getDescription(),
+                ownerId
+        );
+        return dishDtoMapper.toDishResponseDto(updatedDish);
+    }
+
+    @Override
+    public DishResponseDto changeDishActiveStatus(Long dishId, DishActiveRequestDto requestDto, Long ownerId) {
+        Dish updatedDish = dishServicePort.changeDishActiveStatus(
+                dishId,
+                requestDto.getActive(),
                 ownerId
         );
         return dishDtoMapper.toDishResponseDto(updatedDish);
