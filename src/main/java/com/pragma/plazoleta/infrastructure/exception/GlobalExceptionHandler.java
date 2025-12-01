@@ -22,7 +22,8 @@ public class GlobalExceptionHandler {
             InvalidRestaurantNameException.class,
             InvalidNitException.class,
             InvalidPhoneException.class,
-            InvalidPriceException.class
+            InvalidPriceException.class,
+            InvalidActiveStatusException.class
     })
     public ResponseEntity<ErrorResponse> handleValidationExceptions(
             RuntimeException ex, HttpServletRequest request) {
