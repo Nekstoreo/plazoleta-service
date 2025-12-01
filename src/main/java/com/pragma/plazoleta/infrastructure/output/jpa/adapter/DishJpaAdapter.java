@@ -7,6 +7,8 @@ import com.pragma.plazoleta.infrastructure.output.jpa.mapper.DishEntityMapper;
 import com.pragma.plazoleta.infrastructure.output.jpa.repository.IDishRepository;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Component
 public class DishJpaAdapter implements IDishPersistencePort {
 
@@ -23,5 +25,11 @@ public class DishJpaAdapter implements IDishPersistencePort {
         DishEntity entity = dishEntityMapper.toEntity(dish);
         DishEntity savedEntity = dishRepository.save(entity);
         return dishEntityMapper.toDish(savedEntity);
+    }
+
+    @Override
+    public Optional<Dish> findById(Long id) {
+        return dishRepository.findById(id)
+                .map(dishEntityMapper::toDish);
     }
 }
