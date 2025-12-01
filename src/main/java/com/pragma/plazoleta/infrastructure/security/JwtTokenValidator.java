@@ -21,15 +21,27 @@ public class JwtTokenValidator {
     }
 
     public String extractEmail(String token) {
-        return extractAllClaims(token).getSubject();
+        try {
+            return extractAllClaims(token).getSubject();
+        } catch (JwtException | IllegalArgumentException e) {
+            return null;
+        }
     }
 
     public String extractRole(String token) {
-        return extractAllClaims(token).get("role", String.class);
+        try {
+            return extractAllClaims(token).get("role", String.class);
+        } catch (JwtException | IllegalArgumentException e) {
+            return null;
+        }
     }
 
     public Long extractUserId(String token) {
-        return extractAllClaims(token).get("userId", Long.class);
+        try {
+            return extractAllClaims(token).get("userId", Long.class);
+        } catch (JwtException | IllegalArgumentException e) {
+            return null;
+        }
     }
 
     public boolean isTokenValid(String token) {
