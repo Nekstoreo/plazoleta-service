@@ -1,6 +1,7 @@
 package com.pragma.plazoleta.domain.usecase;
 
 import com.pragma.plazoleta.domain.api.IDishServicePort;
+import com.pragma.plazoleta.domain.exception.DishNotFoundException;
 import com.pragma.plazoleta.domain.exception.InvalidPriceException;
 import com.pragma.plazoleta.domain.exception.RestaurantNotFoundException;
 import com.pragma.plazoleta.domain.exception.UserNotRestaurantOwnerException;
@@ -31,6 +32,24 @@ public class DishUseCase implements IDishServicePort {
         
         dish.setActive(true);
         
+        return dishPersistencePort.saveDish(dish);
+    }
+
+    @Override
+    public Dish updateDish(Long dishId, Integer price, String description, Long ownerId) {
+        validatePrice(price);
+
+        Dish dish = dishPersistencePort.findById(dishId)
+                .orElseThrow(() -> new DishNotFoundException(dishId));
+
+        Restaurant restaurant = restaurantPersistencePort.findById(dish.getRestaurantId())
+                .orElseThrow(() -> new RestaurantNotFoundException(dish.getRestaurantId()));
+
+        validateOwnership(restaurant, ownerId);
+
+        dish.setPrice(price);
+        dish.setDescription(description);
+
         return dishPersistencePort.saveDish(dish);
     }
 
