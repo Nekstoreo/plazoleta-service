@@ -185,16 +185,6 @@
             "key": "baseUrl",
             "value": "http://localhost:8082",
             "type": "string"
-        },
-        {
-            "key": "authToken",
-            "value": "",
-            "type": "string"
-        },
-        {
-            "key": "ownerToken",
-            "value": "",
-            "type": "string"
         }
     ]
 }
