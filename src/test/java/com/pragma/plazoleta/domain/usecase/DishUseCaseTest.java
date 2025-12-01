@@ -1,5 +1,6 @@
 package com.pragma.plazoleta.domain.usecase;
 
+import com.pragma.plazoleta.domain.exception.DishNotFoundException;
 import com.pragma.plazoleta.domain.exception.InvalidPriceException;
 import com.pragma.plazoleta.domain.exception.RestaurantNotFoundException;
 import com.pragma.plazoleta.domain.exception.UserNotRestaurantOwnerException;
@@ -39,6 +40,7 @@ class DishUseCaseTest {
 
     private Dish validDish;
     private Restaurant restaurant;
+    private static final Long DISH_ID = 1L;
     private static final Long OWNER_ID = 1L;
     private static final Long RESTAURANT_ID = 10L;
 
@@ -176,6 +178,105 @@ class DishUseCaseTest {
                     .isInstanceOf(UserNotRestaurantOwnerException.class)
                     .hasMessageContaining(differentOwnerId.toString())
                     .hasMessageContaining(RESTAURANT_ID.toString());
+
+            verify(dishPersistencePort, never()).saveDish(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("Update Dish - Happy Path")
+    class UpdateDishHappyPath {
+
+        @Test
+        @DisplayName("Should update dish price and description successfully")
+        void shouldUpdateDishSuccessfully() {
+            Integer newPrice = 30000;
+            String newDescription = "Nueva descripción actualizada";
+
+            Dish existingDish = new Dish(
+                    "Hamburguesa Clásica",
+                    25000,
+                    "Descripción original",
+                    "https://example.com/burger.jpg",
+                    "Hamburguesas",
+                    RESTAURANT_ID
+            );
+            existingDish.setId(DISH_ID);
+            existingDish.setActive(true);
+
+            Dish updatedDish = new Dish(
+                    "Hamburguesa Clásica",
+                    newPrice,
+                    newDescription,
+                    "https://example.com/burger.jpg",
+                    "Hamburguesas",
+                    RESTAURANT_ID
+            );
+            updatedDish.setId(DISH_ID);
+            updatedDish.setActive(true);
+
+            when(dishPersistencePort.findById(DISH_ID)).thenReturn(Optional.of(existingDish));
+            when(restaurantPersistencePort.findById(RESTAURANT_ID)).thenReturn(Optional.of(restaurant));
+            when(dishPersistencePort.saveDish(any(Dish.class))).thenReturn(updatedDish);
+
+            Dish result = dishUseCase.updateDish(DISH_ID, newPrice, newDescription, OWNER_ID);
+
+            assertThat(result).isNotNull();
+            assertThat(result.getPrice()).isEqualTo(newPrice);
+            assertThat(result.getDescription()).isEqualTo(newDescription);
+
+            verify(dishPersistencePort).findById(DISH_ID);
+            verify(restaurantPersistencePort).findById(RESTAURANT_ID);
+            verify(dishPersistencePort).saveDish(any(Dish.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("Update Dish - Validations")
+    class UpdateDishValidations {
+
+        @Test
+        @DisplayName("Should throw DishNotFoundException when dish does not exist")
+        void shouldThrowExceptionWhenDishNotFound() {
+            when(dishPersistencePort.findById(DISH_ID)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> dishUseCase.updateDish(DISH_ID, 30000, "Nueva descripción", OWNER_ID))
+                    .isInstanceOf(DishNotFoundException.class)
+                    .hasMessageContaining(DISH_ID.toString());
+
+            verify(dishPersistencePort, never()).saveDish(any());
+        }
+
+        @Test
+        @DisplayName("Should throw InvalidPriceException when price is invalid")
+        void shouldThrowExceptionWhenPriceIsInvalid() {
+            assertThatThrownBy(() -> dishUseCase.updateDish(DISH_ID, 0, "Nueva descripción", OWNER_ID))
+                    .isInstanceOf(InvalidPriceException.class);
+
+            verify(dishPersistencePort, never()).findById(any());
+            verify(dishPersistencePort, never()).saveDish(any());
+        }
+
+        @Test
+        @DisplayName("Should throw UserNotRestaurantOwnerException when user is not the owner")
+        void shouldThrowExceptionWhenUserIsNotOwner() {
+            Long differentOwnerId = 999L;
+
+            Dish existingDish = new Dish(
+                    "Hamburguesa Clásica",
+                    25000,
+                    "Descripción original",
+                    "https://example.com/burger.jpg",
+                    "Hamburguesas",
+                    RESTAURANT_ID
+            );
+            existingDish.setId(DISH_ID);
+
+            when(dishPersistencePort.findById(DISH_ID)).thenReturn(Optional.of(existingDish));
+            when(restaurantPersistencePort.findById(RESTAURANT_ID)).thenReturn(Optional.of(restaurant));
+
+            assertThatThrownBy(() -> dishUseCase.updateDish(DISH_ID, 30000, "Nueva descripción", differentOwnerId))
+                    .isInstanceOf(UserNotRestaurantOwnerException.class);
 
             verify(dishPersistencePort, never()).saveDish(any());
         }
