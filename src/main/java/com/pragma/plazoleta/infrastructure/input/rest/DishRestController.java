@@ -1,5 +1,6 @@
 package com.pragma.plazoleta.infrastructure.input.rest;
 
+import com.pragma.plazoleta.application.dto.request.DishActiveRequestDto;
 import com.pragma.plazoleta.application.dto.request.DishRequestDto;
 import com.pragma.plazoleta.application.dto.request.DishUpdateRequestDto;
 import com.pragma.plazoleta.application.dto.response.DishResponseDto;
@@ -76,6 +77,31 @@ public class DishRestController {
             @Valid @RequestBody DishUpdateRequestDto updateRequestDto) {
         Long ownerId = getAuthenticatedUserId();
         DishResponseDto updatedDish = dishHandler.updateDish(dishId, updateRequestDto, ownerId);
+        return ResponseEntity.ok(updatedDish);
+    }
+
+    @Operation(summary = "Activate or deactivate a dish",
+            description = "Allows the restaurant owner to enable or disable a dish without modifying other details.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Dish status updated successfully",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = DishResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid input data",
+                    content = @Content),
+            @ApiResponse(responseCode = "401", description = "Not authenticated",
+                    content = @Content),
+            @ApiResponse(responseCode = "403", description = "User is not the restaurant owner",
+                    content = @Content),
+            @ApiResponse(responseCode = "404", description = "Dish not found",
+                    content = @Content)
+    })
+    @PatchMapping("/{dishId}/status")
+    public ResponseEntity<DishResponseDto> changeDishActiveStatus(
+            @Parameter(description = "ID of the dish to toggle", required = true)
+            @PathVariable Long dishId,
+            @Valid @RequestBody DishActiveRequestDto activeRequestDto) {
+        Long ownerId = getAuthenticatedUserId();
+        DishResponseDto updatedDish = dishHandler.changeDishActiveStatus(dishId, activeRequestDto, ownerId);
         return ResponseEntity.ok(updatedDish);
     }
 
