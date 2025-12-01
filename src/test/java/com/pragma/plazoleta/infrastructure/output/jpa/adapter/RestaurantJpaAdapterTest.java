@@ -13,6 +13,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -138,6 +140,49 @@ class RestaurantJpaAdapterTest {
             // Assert
             assertFalse(result);
             verify(restaurantRepository).existsByNit(RESTAURANT_NIT);
+        }
+    }
+
+    @Nested
+    @DisplayName("Find By Id Tests")
+    class FindByIdTests {
+
+        @Test
+        @DisplayName("Should return restaurant when found by id")
+        void shouldReturnRestaurantWhenFoundById() {
+            // Arrange
+            Long restaurantId = 1L;
+            Restaurant foundRestaurant = new Restaurant();
+            foundRestaurant.setId(restaurantId);
+            foundRestaurant.setName(RESTAURANT_NAME);
+            foundRestaurant.setOwnerId(OWNER_ID);
+
+            when(restaurantRepository.findById(restaurantId)).thenReturn(Optional.of(savedEntity));
+            when(restaurantEntityMapper.toRestaurant(savedEntity)).thenReturn(foundRestaurant);
+
+            // Act
+            Optional<Restaurant> result = restaurantJpaAdapter.findById(restaurantId);
+
+            // Assert
+            assertTrue(result.isPresent());
+            assertEquals(restaurantId, result.get().getId());
+            assertEquals(RESTAURANT_NAME, result.get().getName());
+            verify(restaurantRepository).findById(restaurantId);
+        }
+
+        @Test
+        @DisplayName("Should return empty optional when restaurant not found")
+        void shouldReturnEmptyOptionalWhenRestaurantNotFound() {
+            // Arrange
+            Long restaurantId = 999L;
+            when(restaurantRepository.findById(restaurantId)).thenReturn(Optional.empty());
+
+            // Act
+            Optional<Restaurant> result = restaurantJpaAdapter.findById(restaurantId);
+
+            // Assert
+            assertTrue(result.isEmpty());
+            verify(restaurantRepository).findById(restaurantId);
         }
     }
 }
