@@ -19,15 +19,21 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(MockitoExtension.class)
 class DishRestControllerTest {
@@ -72,6 +78,19 @@ class DishRestControllerTest {
                 .active(true)
                 .restaurantId(RESTAURANT_ID)
                 .build();
+
+        // Setup security context with authenticated user
+        setUpSecurityContext(OWNER_ID, "OWNER");
+    }
+
+    private void setUpSecurityContext(Long userId, String role) {
+        List<SimpleGrantedAuthority> authorities = List.of(
+                new SimpleGrantedAuthority("ROLE_" + role)
+        );
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken("owner@test.com", null, authorities);
+        authentication.setDetails(userId);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
     @Nested
@@ -86,7 +105,6 @@ class DishRestControllerTest {
 
             mockMvc.perform(post("/api/v1/dishes")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .header("X-Owner-Id", OWNER_ID)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.id").value(DISH_ID))
@@ -108,7 +126,6 @@ class DishRestControllerTest {
 
             mockMvc.perform(post("/api/v1/dishes")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .header("X-Owner-Id", OWNER_ID)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isBadRequest());
         }
@@ -120,7 +137,6 @@ class DishRestControllerTest {
 
             mockMvc.perform(post("/api/v1/dishes")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .header("X-Owner-Id", OWNER_ID)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isBadRequest());
         }
@@ -130,16 +146,6 @@ class DishRestControllerTest {
         void shouldReturn400WhenRestaurantIdIsNull() throws Exception {
             validRequest.setRestaurantId(null);
 
-            mockMvc.perform(post("/api/v1/dishes")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .header("X-Owner-Id", OWNER_ID)
-                            .content(objectMapper.writeValueAsString(validRequest)))
-                    .andExpect(status().isBadRequest());
-        }
-
-        @Test
-        @DisplayName("Should return 400 when X-Owner-Id header is missing")
-        void shouldReturn400WhenOwnerIdHeaderIsMissing() throws Exception {
             mockMvc.perform(post("/api/v1/dishes")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
@@ -159,7 +165,6 @@ class DishRestControllerTest {
 
             mockMvc.perform(post("/api/v1/dishes")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .header("X-Owner-Id", OWNER_ID)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.message").value("Price must be a positive integer greater than zero"));
@@ -173,7 +178,6 @@ class DishRestControllerTest {
 
             mockMvc.perform(post("/api/v1/dishes")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .header("X-Owner-Id", OWNER_ID)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.message").value("Restaurant not found with id: " + RESTAURANT_ID));
@@ -183,12 +187,13 @@ class DishRestControllerTest {
         @DisplayName("Should return 403 when user is not restaurant owner")
         void shouldReturn403WhenUserIsNotOwner() throws Exception {
             Long wrongOwnerId = 999L;
+            setUpSecurityContext(wrongOwnerId, "OWNER");
+
             when(dishHandler.createDish(any(DishRequestDto.class), eq(wrongOwnerId)))
                     .thenThrow(new UserNotRestaurantOwnerException(wrongOwnerId, RESTAURANT_ID));
 
             mockMvc.perform(post("/api/v1/dishes")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .header("X-Owner-Id", wrongOwnerId)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.message").value("User with id " + wrongOwnerId + " is not the owner of restaurant with id " + RESTAURANT_ID));
@@ -226,7 +231,6 @@ class DishRestControllerTest {
 
             mockMvc.perform(patch("/api/v1/dishes/{dishId}", DISH_ID)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .header("X-Owner-Id", OWNER_ID)
                             .content(objectMapper.writeValueAsString(updateRequest)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.id").value(DISH_ID))
@@ -249,7 +253,6 @@ class DishRestControllerTest {
 
             mockMvc.perform(patch("/api/v1/dishes/{dishId}", DISH_ID)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .header("X-Owner-Id", OWNER_ID)
                             .content(objectMapper.writeValueAsString(updateRequest)))
                     .andExpect(status().isBadRequest());
         }
@@ -264,7 +267,6 @@ class DishRestControllerTest {
 
             mockMvc.perform(patch("/api/v1/dishes/{dishId}", DISH_ID)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .header("X-Owner-Id", OWNER_ID)
                             .content(objectMapper.writeValueAsString(updateRequest)))
                     .andExpect(status().isBadRequest());
         }
@@ -287,7 +289,6 @@ class DishRestControllerTest {
 
             mockMvc.perform(patch("/api/v1/dishes/{dishId}", DISH_ID)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .header("X-Owner-Id", OWNER_ID)
                             .content(objectMapper.writeValueAsString(updateRequest)))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.message").value("Dish not found with id: " + DISH_ID));
@@ -297,6 +298,8 @@ class DishRestControllerTest {
         @DisplayName("Should return 403 when user is not restaurant owner")
         void shouldReturn403WhenUserIsNotOwner() throws Exception {
             Long wrongOwnerId = 999L;
+            setUpSecurityContext(wrongOwnerId, "OWNER");
+
             DishUpdateRequestDto updateRequest = DishUpdateRequestDto.builder()
                     .price(30000)
                     .description("Nueva descripción")
@@ -307,7 +310,6 @@ class DishRestControllerTest {
 
             mockMvc.perform(patch("/api/v1/dishes/{dishId}", DISH_ID)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .header("X-Owner-Id", wrongOwnerId)
                             .content(objectMapper.writeValueAsString(updateRequest)))
                     .andExpect(status().isForbidden());
         }
