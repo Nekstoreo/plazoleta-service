@@ -10,21 +10,19 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/dishes")
 @Tag(name = "Dishes", description = "Dish management endpoints")
+@SecurityRequirement(name = "bearerAuth")
 public class DishRestController {
 
     private final IDishHandler dishHandler;
@@ -41,6 +39,8 @@ public class DishRestController {
                             schema = @Schema(implementation = DishResponseDto.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input data",
                     content = @Content),
+            @ApiResponse(responseCode = "401", description = "Not authenticated",
+                    content = @Content),
             @ApiResponse(responseCode = "403", description = "User is not the restaurant owner",
                     content = @Content),
             @ApiResponse(responseCode = "404", description = "Restaurant not found",
@@ -48,9 +48,8 @@ public class DishRestController {
     })
     @PostMapping
     public ResponseEntity<DishResponseDto> createDish(
-            @Valid @RequestBody DishRequestDto dishRequestDto,
-            @Parameter(description = "ID of the owner making the request", required = true)
-            @RequestHeader("X-Owner-Id") Long ownerId) {
+            @Valid @RequestBody DishRequestDto dishRequestDto) {
+        Long ownerId = getAuthenticatedUserId();
         DishResponseDto createdDish = dishHandler.createDish(dishRequestDto, ownerId);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdDish);
     }
@@ -63,6 +62,8 @@ public class DishRestController {
                             schema = @Schema(implementation = DishResponseDto.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input data",
                     content = @Content),
+            @ApiResponse(responseCode = "401", description = "Not authenticated",
+                    content = @Content),
             @ApiResponse(responseCode = "403", description = "User is not the restaurant owner",
                     content = @Content),
             @ApiResponse(responseCode = "404", description = "Dish not found",
@@ -72,10 +73,21 @@ public class DishRestController {
     public ResponseEntity<DishResponseDto> updateDish(
             @Parameter(description = "ID of the dish to update", required = true)
             @PathVariable Long dishId,
-            @Valid @RequestBody DishUpdateRequestDto updateRequestDto,
-            @Parameter(description = "ID of the owner making the request", required = true)
-            @RequestHeader("X-Owner-Id") Long ownerId) {
+            @Valid @RequestBody DishUpdateRequestDto updateRequestDto) {
+        Long ownerId = getAuthenticatedUserId();
         DishResponseDto updatedDish = dishHandler.updateDish(dishId, updateRequestDto, ownerId);
         return ResponseEntity.ok(updatedDish);
+    }
+
+    private Long getAuthenticatedUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new IllegalStateException("Authentication is not available in the security context");
+        }
+        Object details = authentication.getDetails();
+        if (details == null) {
+            throw new IllegalStateException("User details are not available in authentication");
+        }
+        return (Long) details;
     }
 }
