@@ -38,7 +38,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({
             OwnerNotFoundException.class,
-            RestaurantNotFoundException.class
+            RestaurantNotFoundException.class,
+            DishNotFoundException.class
     })
     public ResponseEntity<ErrorResponse> handleNotFoundException(
             RuntimeException ex, HttpServletRequest request) {
