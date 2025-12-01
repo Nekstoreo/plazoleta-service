@@ -1,6 +1,7 @@
 package com.pragma.plazoleta.domain.usecase;
 
 import com.pragma.plazoleta.domain.exception.DishNotFoundException;
+import com.pragma.plazoleta.domain.exception.InvalidActiveStatusException;
 import com.pragma.plazoleta.domain.exception.InvalidPriceException;
 import com.pragma.plazoleta.domain.exception.RestaurantNotFoundException;
 import com.pragma.plazoleta.domain.exception.UserNotRestaurantOwnerException;
@@ -278,6 +279,103 @@ class DishUseCaseTest {
             assertThatThrownBy(() -> dishUseCase.updateDish(DISH_ID, 30000, "Nueva descripción", differentOwnerId))
                     .isInstanceOf(UserNotRestaurantOwnerException.class);
 
+            verify(dishPersistencePort, never()).saveDish(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("Change Dish Active Status - Happy Path")
+    class ChangeDishActiveStatusHappyPath {
+
+        @Test
+        @DisplayName("Should update the active flag successfully")
+        void shouldUpdateActiveStatusSuccessfully() {
+            Dish existingDish = new Dish(
+                    "Hamburguesa Clásica",
+                    25000,
+                    "Descripción original",
+                    "https://example.com/burger.jpg",
+                    "Hamburguesas",
+                    RESTAURANT_ID
+            );
+            existingDish.setId(DISH_ID);
+            existingDish.setActive(true);
+
+            Dish updatedDish = new Dish(
+                    "Hamburguesa Clásica",
+                    25000,
+                    "Descripción original",
+                    "https://example.com/burger.jpg",
+                    "Hamburguesas",
+                    RESTAURANT_ID
+            );
+            updatedDish.setId(DISH_ID);
+            updatedDish.setActive(false);
+
+            when(dishPersistencePort.findById(DISH_ID)).thenReturn(Optional.of(existingDish));
+            when(restaurantPersistencePort.findById(RESTAURANT_ID)).thenReturn(Optional.of(restaurant));
+            when(dishPersistencePort.saveDish(any(Dish.class))).thenReturn(updatedDish);
+
+            Dish result = dishUseCase.changeDishActiveStatus(DISH_ID, false, OWNER_ID);
+
+            assertThat(result).isNotNull();
+            assertThat(result.getActive()).isFalse();
+
+            verify(dishPersistencePort).findById(DISH_ID);
+            verify(restaurantPersistencePort).findById(RESTAURANT_ID);
+            verify(dishPersistencePort).saveDish(argThat(dish -> Boolean.FALSE.equals(dish.getActive())));
+        }
+    }
+
+    @Nested
+    @DisplayName("Change Dish Active Status - Validations")
+    class ChangeDishActiveStatusValidations {
+
+        @Test
+        @DisplayName("Should throw DishNotFoundException when dish does not exist")
+        void shouldThrowWhenDishNotFound() {
+            when(dishPersistencePort.findById(DISH_ID)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> dishUseCase.changeDishActiveStatus(DISH_ID, false, OWNER_ID))
+                    .isInstanceOf(DishNotFoundException.class)
+                    .hasMessageContaining(DISH_ID.toString());
+
+            verify(dishPersistencePort, never()).saveDish(any());
+        }
+
+        @Test
+        @DisplayName("Should throw UserNotRestaurantOwnerException when user is not the owner")
+        void shouldThrowWhenUserIsNotOwner() {
+            Dish existingDish = new Dish(
+                    "Hamburguesa Clásica",
+                    25000,
+                    "Descripción original",
+                    "https://example.com/burger.jpg",
+                    "Hamburguesas",
+                    RESTAURANT_ID
+            );
+            existingDish.setId(DISH_ID);
+
+            Long differentOwnerId = 999L;
+
+            when(dishPersistencePort.findById(DISH_ID)).thenReturn(Optional.of(existingDish));
+            when(restaurantPersistencePort.findById(RESTAURANT_ID)).thenReturn(Optional.of(restaurant));
+
+            assertThatThrownBy(() -> dishUseCase.changeDishActiveStatus(DISH_ID, true, differentOwnerId))
+                    .isInstanceOf(UserNotRestaurantOwnerException.class);
+
+            verify(dishPersistencePort, never()).saveDish(any());
+        }
+
+        @Test
+        @DisplayName("Should throw InvalidActiveStatusException when active flag is null")
+        void shouldThrowWhenActiveIsNull() {
+            assertThatThrownBy(() -> dishUseCase.changeDishActiveStatus(DISH_ID, null, OWNER_ID))
+                    .isInstanceOf(InvalidActiveStatusException.class)
+                    .hasMessageContaining("Active flag must be provided");
+
+            verify(dishPersistencePort, never()).findById(any());
+            verify(restaurantPersistencePort, never()).findById(any());
             verify(dishPersistencePort, never()).saveDish(any());
         }
     }

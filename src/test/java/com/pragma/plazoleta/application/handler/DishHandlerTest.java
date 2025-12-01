@@ -1,5 +1,6 @@
 package com.pragma.plazoleta.application.handler;
 
+import com.pragma.plazoleta.application.dto.request.DishActiveRequestDto;
 import com.pragma.plazoleta.application.dto.request.DishRequestDto;
 import com.pragma.plazoleta.application.dto.request.DishUpdateRequestDto;
 import com.pragma.plazoleta.application.dto.response.DishResponseDto;
@@ -158,6 +159,53 @@ class DishHandlerTest {
 
             verify(dishServicePort).updateDish(DISH_ID, newPrice, newDescription, OWNER_ID);
             verify(dishDtoMapper).toDishResponseDto(updatedDish);
+        }
+    }
+
+    @Nested
+    @DisplayName("Change Dish Active Status Tests")
+    class ChangeDishActiveStatusTests {
+
+        @Test
+        @DisplayName("Should change dish active flag and return response dto")
+        void shouldChangeDishActiveFlagAndReturnResponseDto() {
+            DishActiveRequestDto activeRequest = DishActiveRequestDto.builder()
+                    .active(false)
+                    .build();
+
+            Dish deactivatedDish = new Dish(
+                    "Hamburguesa Clásica",
+                    25000,
+                    "Deliciosa hamburguesa con carne 100% res",
+                    "https://example.com/burger.jpg",
+                    "Hamburguesas",
+                    RESTAURANT_ID
+            );
+            deactivatedDish.setId(DISH_ID);
+            deactivatedDish.setActive(false);
+
+            DishResponseDto deactivatedResponse = DishResponseDto.builder()
+                    .id(DISH_ID)
+                    .name("Hamburguesa Clásica")
+                    .price(25000)
+                    .description("Deliciosa hamburguesa con carne 100% res")
+                    .imageUrl("https://example.com/burger.jpg")
+                    .category("Hamburguesas")
+                    .active(false)
+                    .restaurantId(RESTAURANT_ID)
+                    .build();
+
+            when(dishServicePort.changeDishActiveStatus(DISH_ID, false, OWNER_ID))
+                    .thenReturn(deactivatedDish);
+            when(dishDtoMapper.toDishResponseDto(deactivatedDish)).thenReturn(deactivatedResponse);
+
+            DishResponseDto result = dishHandler.changeDishActiveStatus(DISH_ID, activeRequest, OWNER_ID);
+
+            assertThat(result).isNotNull();
+            assertThat(result.getActive()).isFalse();
+
+            verify(dishServicePort).changeDishActiveStatus(DISH_ID, false, OWNER_ID);
+            verify(dishDtoMapper).toDishResponseDto(deactivatedDish);
         }
     }
 }
