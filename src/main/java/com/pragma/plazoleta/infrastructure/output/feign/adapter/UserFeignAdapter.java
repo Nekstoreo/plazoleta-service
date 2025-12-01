@@ -21,7 +21,7 @@ public class UserFeignAdapter implements IUserValidationPort {
     public boolean existsById(Long userId) {
         try {
             return userFeignClient.getUserById(userId).isPresent();
-        } catch (FeignException.NotFound e) {
+        } catch (FeignException e) {
             return false;
         }
     }
@@ -31,7 +31,7 @@ public class UserFeignAdapter implements IUserValidationPort {
         try {
             return userFeignClient.getUserById(userId)
                     .map(UserDto::getRole);
-        } catch (FeignException.NotFound e) {
+        } catch (FeignException e) {
             return Optional.empty();
         }
     }
