@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -18,7 +19,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
             InvalidRestaurantNameException.class,
             InvalidNitException.class,
-            InvalidPhoneException.class
+            InvalidPhoneException.class,
+            InvalidPriceException.class
     })
     public ResponseEntity<ErrorResponse> handleValidationExceptions(
             RuntimeException ex, HttpServletRequest request) {
@@ -33,7 +35,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({
-            OwnerNotFoundException.class
+            OwnerNotFoundException.class,
+            RestaurantNotFoundException.class
     })
     public ResponseEntity<ErrorResponse> handleNotFoundException(
             RuntimeException ex, HttpServletRequest request) {
@@ -48,7 +51,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({
-            UserNotOwnerException.class
+            UserNotOwnerException.class,
+            UserNotRestaurantOwnerException.class
     })
     public ResponseEntity<ErrorResponse> handleForbiddenException(
             RuntimeException ex, HttpServletRequest request) {
@@ -89,6 +93,19 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST.value(),
                 "Bad Request",
                 message,
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public ResponseEntity<ErrorResponse> handleMissingRequestHeaderException(
+            MissingRequestHeaderException ex, HttpServletRequest request) {
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                "Required header '" + ex.getHeaderName() + "' is missing",
                 request.getRequestURI()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
