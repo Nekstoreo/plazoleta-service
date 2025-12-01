@@ -1,0 +1,44 @@
+{
+  "info": {
+    "name": "Plazoleta Service - HU02",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create Restaurant - Success",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Restaurante El Buen Sabor\",\n  \"nit\": \"900123456\",\n  \"address\": \"Calle 123 #45-67\",\n  \"phone\": \"+573001234567\",\n  \"logoUrl\": \"https://example.com/logo.png\",\n  \"ownerId\": 1\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/restaurants",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "restaurants"
+          ]
+        },
+        "description": "Creates a new restaurant with valid data. Expected: 201 Created. Note: ownerId must be a valid user with OWNER role."
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8082",
+      "type": "string"
+    }
+  ]
+}
