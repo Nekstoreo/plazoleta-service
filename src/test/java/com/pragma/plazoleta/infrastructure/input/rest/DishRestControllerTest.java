@@ -2,8 +2,10 @@ package com.pragma.plazoleta.infrastructure.input.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pragma.plazoleta.application.dto.request.DishRequestDto;
+import com.pragma.plazoleta.application.dto.request.DishUpdateRequestDto;
 import com.pragma.plazoleta.application.dto.response.DishResponseDto;
 import com.pragma.plazoleta.application.handler.IDishHandler;
+import com.pragma.plazoleta.domain.exception.DishNotFoundException;
 import com.pragma.plazoleta.domain.exception.InvalidPriceException;
 import com.pragma.plazoleta.domain.exception.RestaurantNotFoundException;
 import com.pragma.plazoleta.domain.exception.UserNotRestaurantOwnerException;
@@ -23,6 +25,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -39,6 +42,7 @@ class DishRestControllerTest {
     private ObjectMapper objectMapper;
     private DishRequestDto validRequest;
     private DishResponseDto responseDto;
+    private static final Long DISH_ID = 1L;
     private static final Long OWNER_ID = 1L;
     private static final Long RESTAURANT_ID = 10L;
 
@@ -59,7 +63,7 @@ class DishRestControllerTest {
                 .build();
 
         responseDto = DishResponseDto.builder()
-                .id(1L)
+                .id(DISH_ID)
                 .name("Hamburguesa Clásica")
                 .price(25000)
                 .description("Deliciosa hamburguesa con carne 100% res")
@@ -85,7 +89,7 @@ class DishRestControllerTest {
                             .header("X-Owner-Id", OWNER_ID)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.id").value(1))
+                    .andExpect(jsonPath("$.id").value(DISH_ID))
                     .andExpect(jsonPath("$.name").value("Hamburguesa Clásica"))
                     .andExpect(jsonPath("$.price").value(25000))
                     .andExpect(jsonPath("$.active").value(true))
@@ -188,6 +192,124 @@ class DishRestControllerTest {
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.message").value("User with id " + wrongOwnerId + " is not the owner of restaurant with id " + RESTAURANT_ID));
+        }
+    }
+
+    @Nested
+    @DisplayName("Update Dish - Happy Path")
+    class UpdateDishHappyPath {
+
+        @Test
+        @DisplayName("Should update dish and return 200")
+        void shouldUpdateDishAndReturn200() throws Exception {
+            Integer newPrice = 30000;
+            String newDescription = "Nueva descripción actualizada";
+
+            DishUpdateRequestDto updateRequest = DishUpdateRequestDto.builder()
+                    .price(newPrice)
+                    .description(newDescription)
+                    .build();
+
+            DishResponseDto updatedResponse = DishResponseDto.builder()
+                    .id(DISH_ID)
+                    .name("Hamburguesa Clásica")
+                    .price(newPrice)
+                    .description(newDescription)
+                    .imageUrl("https://example.com/burger.jpg")
+                    .category("Hamburguesas")
+                    .active(true)
+                    .restaurantId(RESTAURANT_ID)
+                    .build();
+
+            when(dishHandler.updateDish(eq(DISH_ID), any(DishUpdateRequestDto.class), eq(OWNER_ID)))
+                    .thenReturn(updatedResponse);
+
+            mockMvc.perform(patch("/api/v1/dishes/{dishId}", DISH_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("X-Owner-Id", OWNER_ID)
+                            .content(objectMapper.writeValueAsString(updateRequest)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id").value(DISH_ID))
+                    .andExpect(jsonPath("$.price").value(newPrice))
+                    .andExpect(jsonPath("$.description").value(newDescription));
+        }
+    }
+
+    @Nested
+    @DisplayName("Update Dish - Validation Errors")
+    class UpdateDishValidationErrors {
+
+        @Test
+        @DisplayName("Should return 400 when price is less than 1")
+        void shouldReturn400WhenPriceIsLessThan1() throws Exception {
+            DishUpdateRequestDto updateRequest = DishUpdateRequestDto.builder()
+                    .price(0)
+                    .description("Nueva descripción")
+                    .build();
+
+            mockMvc.perform(patch("/api/v1/dishes/{dishId}", DISH_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("X-Owner-Id", OWNER_ID)
+                            .content(objectMapper.writeValueAsString(updateRequest)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("Should return 400 when description is blank")
+        void shouldReturn400WhenDescriptionIsBlank() throws Exception {
+            DishUpdateRequestDto updateRequest = DishUpdateRequestDto.builder()
+                    .price(30000)
+                    .description("")
+                    .build();
+
+            mockMvc.perform(patch("/api/v1/dishes/{dishId}", DISH_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("X-Owner-Id", OWNER_ID)
+                            .content(objectMapper.writeValueAsString(updateRequest)))
+                    .andExpect(status().isBadRequest());
+        }
+    }
+
+    @Nested
+    @DisplayName("Update Dish - Business Errors")
+    class UpdateDishBusinessErrors {
+
+        @Test
+        @DisplayName("Should return 404 when dish not found")
+        void shouldReturn404WhenDishNotFound() throws Exception {
+            DishUpdateRequestDto updateRequest = DishUpdateRequestDto.builder()
+                    .price(30000)
+                    .description("Nueva descripción")
+                    .build();
+
+            when(dishHandler.updateDish(eq(DISH_ID), any(DishUpdateRequestDto.class), eq(OWNER_ID)))
+                    .thenThrow(new DishNotFoundException(DISH_ID));
+
+            mockMvc.perform(patch("/api/v1/dishes/{dishId}", DISH_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("X-Owner-Id", OWNER_ID)
+                            .content(objectMapper.writeValueAsString(updateRequest)))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.message").value("Dish not found with id: " + DISH_ID));
+        }
+
+        @Test
+        @DisplayName("Should return 403 when user is not restaurant owner")
+        void shouldReturn403WhenUserIsNotOwner() throws Exception {
+            Long wrongOwnerId = 999L;
+            DishUpdateRequestDto updateRequest = DishUpdateRequestDto.builder()
+                    .price(30000)
+                    .description("Nueva descripción")
+                    .build();
+
+            when(dishHandler.updateDish(eq(DISH_ID), any(DishUpdateRequestDto.class), eq(wrongOwnerId)))
+                    .thenThrow(new UserNotRestaurantOwnerException(wrongOwnerId, RESTAURANT_ID));
+
+            mockMvc.perform(patch("/api/v1/dishes/{dishId}", DISH_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("X-Owner-Id", wrongOwnerId)
+                            .content(objectMapper.writeValueAsString(updateRequest)))
+                    .andExpect(status().isForbidden());
         }
     }
 }
