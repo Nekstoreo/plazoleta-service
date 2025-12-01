@@ -1,11 +1,13 @@
 package com.pragma.plazoleta.infrastructure.input.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pragma.plazoleta.application.dto.request.DishActiveRequestDto;
 import com.pragma.plazoleta.application.dto.request.DishRequestDto;
 import com.pragma.plazoleta.application.dto.request.DishUpdateRequestDto;
 import com.pragma.plazoleta.application.dto.response.DishResponseDto;
 import com.pragma.plazoleta.application.handler.IDishHandler;
 import com.pragma.plazoleta.domain.exception.DishNotFoundException;
+import com.pragma.plazoleta.domain.exception.InvalidActiveStatusException;
 import com.pragma.plazoleta.domain.exception.InvalidPriceException;
 import com.pragma.plazoleta.domain.exception.RestaurantNotFoundException;
 import com.pragma.plazoleta.domain.exception.UserNotRestaurantOwnerException;
@@ -312,6 +314,116 @@ class DishRestControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(updateRequest)))
                     .andExpect(status().isForbidden());
+        }
+    }
+
+    @Nested
+    @DisplayName("Change Dish Active Status - Happy Path")
+    class ChangeDishActiveStatusHappyPath {
+
+        @Test
+        @DisplayName("Should toggle dish active flag and return 200")
+        void shouldToggleDishActiveFlag() throws Exception {
+            DishActiveRequestDto activeRequest = DishActiveRequestDto.builder()
+                    .active(false)
+                    .build();
+
+            DishResponseDto updatedResponse = DishResponseDto.builder()
+                    .id(DISH_ID)
+                    .name("Hamburguesa Clásica")
+                    .price(25000)
+                    .description("Deliciosa hamburguesa con carne 100% res")
+                    .imageUrl("https://example.com/burger.jpg")
+                    .category("Hamburguesas")
+                    .active(false)
+                    .restaurantId(RESTAURANT_ID)
+                    .build();
+
+            when(dishHandler.changeDishActiveStatus(eq(DISH_ID), any(DishActiveRequestDto.class), eq(OWNER_ID)))
+                    .thenReturn(updatedResponse);
+
+            mockMvc.perform(patch("/api/v1/dishes/{dishId}/status", DISH_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(activeRequest)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.active").value(false))
+                    .andExpect(jsonPath("$.id").value(DISH_ID));
+        }
+    }
+
+    @Nested
+    @DisplayName("Change Dish Active Status - Validation Errors")
+    class ChangeDishActiveStatusValidationErrors {
+
+        @Test
+        @DisplayName("Should return 400 when active flag is null")
+        void shouldReturn400WhenActiveIsNull() throws Exception {
+            DishActiveRequestDto invalidRequest = DishActiveRequestDto.builder()
+                    .active(null)
+                    .build();
+
+            mockMvc.perform(patch("/api/v1/dishes/{dishId}/status", DISH_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(invalidRequest)))
+                    .andExpect(status().isBadRequest());
+        }
+    }
+
+    @Nested
+    @DisplayName("Change Dish Active Status - Business Errors")
+    class ChangeDishActiveStatusBusinessErrors {
+
+        @Test
+        @DisplayName("Should return 404 when dish not found")
+        void shouldReturn404WhenDishNotFound() throws Exception {
+            DishActiveRequestDto activeRequest = DishActiveRequestDto.builder()
+                    .active(false)
+                    .build();
+
+            when(dishHandler.changeDishActiveStatus(eq(DISH_ID), any(DishActiveRequestDto.class), eq(OWNER_ID)))
+                    .thenThrow(new DishNotFoundException(DISH_ID));
+
+            mockMvc.perform(patch("/api/v1/dishes/{dishId}/status", DISH_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(activeRequest)))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.message").value("Dish not found with id: " + DISH_ID));
+        }
+
+        @Test
+        @DisplayName("Should return 403 when user is not restaurant owner")
+        void shouldReturn403WhenUserIsNotOwner() throws Exception {
+            DishActiveRequestDto activeRequest = DishActiveRequestDto.builder()
+                    .active(true)
+                    .build();
+
+            Long wrongOwnerId = 999L;
+            setUpSecurityContext(wrongOwnerId, "OWNER");
+
+            when(dishHandler.changeDishActiveStatus(eq(DISH_ID), any(DishActiveRequestDto.class), eq(wrongOwnerId)))
+                    .thenThrow(new UserNotRestaurantOwnerException(wrongOwnerId, RESTAURANT_ID));
+
+            mockMvc.perform(patch("/api/v1/dishes/{dishId}/status", DISH_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(activeRequest)))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @DisplayName("Should return 400 when active flag is invalid")
+        void shouldReturn400ForInvalidActiveFlag() throws Exception {
+            DishActiveRequestDto activeRequest = DishActiveRequestDto.builder()
+                    .active(true)
+                    .build();
+
+            when(dishHandler.changeDishActiveStatus(eq(DISH_ID), any(DishActiveRequestDto.class), eq(OWNER_ID)))
+                    .thenThrow(new InvalidActiveStatusException());
+
+            mockMvc.perform(patch("/api/v1/dishes/{dishId}/status", DISH_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(activeRequest)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.message").value("Active flag must be provided"));
         }
     }
 }
