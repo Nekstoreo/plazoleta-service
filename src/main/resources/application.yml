@@ -20,6 +20,10 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
 
+# JWT Configuration (must match usuarios-service)
+jwt:
+  secret: ${JWT_SECRET:bb7fd9ad778c38c5d0ed3f6f126b09652ea4e730c837d139f91ddb74f4720319}
+
 # OpenAPI / Swagger
 springdoc:
   api-docs:
