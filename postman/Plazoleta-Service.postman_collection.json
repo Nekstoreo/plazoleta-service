@@ -1,37 +1,210 @@
 {
   "info": {
-    "name": "Plazoleta Service - HU02",
+    "name": "Plazoleta Service",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "Create Restaurant - Success",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"name\": \"Restaurante El Buen Sabor\",\n  \"nit\": \"900123456\",\n  \"address\": \"Calle 123 #45-67\",\n  \"phone\": \"+573001234567\",\n  \"logoUrl\": \"https://example.com/logo.png\",\n  \"ownerId\": 1\n}"
+      "name": "Restaurants",
+      "item": [
+        {
+          "name": "Create Restaurant - Success",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Restaurante El Buen Sabor\",\n  \"nit\": \"900123456\",\n  \"address\": \"Calle 123 #45-67\",\n  \"phone\": \"+573001234567\",\n  \"logoUrl\": \"https://example.com/logo.png\",\n  \"ownerId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/restaurants",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "restaurants"
+              ]
+            },
+            "description": "Creates a new restaurant with valid data. Expected: 201 Created. Note: ownerId must be a valid user with OWNER role."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Dishes",
+      "item": [
+        {
+          "name": "Create Dish - Success",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Owner-Id",
+                "value": "1",
+                "description": "ID of the owner creating the dish"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Hamburguesa Clásica\",\n  \"price\": 25000,\n  \"description\": \"Deliciosa hamburguesa con carne 100% res, lechuga, tomate y salsa especial\",\n  \"imageUrl\": \"https://example.com/burger.jpg\",\n  \"category\": \"Hamburguesas\",\n  \"restaurantId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/dishes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "dishes"
+              ]
+            },
+            "description": "Creates a new dish for a restaurant. Expected: 201 Created. Note: X-Owner-Id header must match the restaurant owner."
+          },
+          "response": []
         },
-        "url": {
-          "raw": "{{baseUrl}}/api/v1/restaurants",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "restaurants"
-          ]
+        {
+          "name": "Create Dish - Invalid Price",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Owner-Id",
+                "value": "1"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Pizza Margarita\",\n  \"price\": 0,\n  \"description\": \"Pizza con tomate y mozzarella\",\n  \"imageUrl\": \"https://example.com/pizza.jpg\",\n  \"category\": \"Pizzas\",\n  \"restaurantId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/dishes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "dishes"
+              ]
+            },
+            "description": "Attempt to create a dish with price 0. Expected: 400 Bad Request."
+          },
+          "response": []
         },
-        "description": "Creates a new restaurant with valid data. Expected: 201 Created. Note: ownerId must be a valid user with OWNER role."
-      },
-      "response": []
+        {
+          "name": "Create Dish - Restaurant Not Found",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Owner-Id",
+                "value": "1"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ensalada César\",\n  \"price\": 18000,\n  \"description\": \"Ensalada fresca con aderezo césar\",\n  \"imageUrl\": \"https://example.com/salad.jpg\",\n  \"category\": \"Ensaladas\",\n  \"restaurantId\": 9999\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/dishes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "dishes"
+              ]
+            },
+            "description": "Attempt to create a dish for a non-existent restaurant. Expected: 404 Not Found."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Dish - Not Restaurant Owner",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Owner-Id",
+                "value": "999",
+                "description": "ID of a user that is not the restaurant owner"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Pasta Carbonara\",\n  \"price\": 22000,\n  \"description\": \"Pasta con salsa carbonara tradicional\",\n  \"imageUrl\": \"https://example.com/pasta.jpg\",\n  \"category\": \"Pastas\",\n  \"restaurantId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/dishes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "dishes"
+              ]
+            },
+            "description": "Attempt to create a dish by a user who is not the restaurant owner. Expected: 403 Forbidden."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Dish - Missing Owner Header",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sopa del Día\",\n  \"price\": 12000,\n  \"description\": \"Sopa casera del día\",\n  \"imageUrl\": \"https://example.com/soup.jpg\",\n  \"category\": \"Sopas\",\n  \"restaurantId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/dishes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "dishes"
+              ]
+            },
+            "description": "Attempt to create a dish without X-Owner-Id header. Expected: 400 Bad Request."
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [
