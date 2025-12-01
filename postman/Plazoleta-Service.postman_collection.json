@@ -10,6 +10,16 @@
                 {
                     "name": "Create Restaurant - Success",
                     "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{authToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
                         "method": "POST",
                         "header": [
                             {
@@ -31,8 +41,7 @@
                                 "v1",
                                 "restaurants"
                             ]
-                        },
-                        "description": "Creates a new restaurant with valid data. Expected: 201 Created. Note: ownerId must be a valid user with OWNER role."
+                        }
                     },
                     "response": []
                 }
@@ -44,6 +53,16 @@
                 {
                     "name": "Create Dish - Success",
                     "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{ownerToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
                         "method": "POST",
                         "header": [
                             {
@@ -70,14 +89,23 @@
                                 "v1",
                                 "dishes"
                             ]
-                        },
-                        "description": "Creates a new dish for a restaurant. Expected: 201 Created. Note: X-Owner-Id header must match the restaurant owner."
+                        }
                     },
                     "response": []
                 },
                 {
                     "name": "Update Dish - Success",
                     "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{ownerToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
                         "method": "PATCH",
                         "header": [
                             {
@@ -105,8 +133,47 @@
                                 "dishes",
                                 "1"
                             ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Toggle Dish Active Flag",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{ownerToken}}",
+                                    "type": "string"
+                                }
+                            ]
                         },
-                        "description": "Updates price and description of an existing dish. Expected: 200 OK. Note: X-Owner-Id header must match the restaurant owner."
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"active\": false\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/dishes/1/status",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "dishes",
+                                "1",
+                                "status"
+                            ]
+                        }
                     },
                     "response": []
                 }
@@ -117,6 +184,16 @@
         {
             "key": "baseUrl",
             "value": "http://localhost:8082",
+            "type": "string"
+        },
+        {
+            "key": "authToken",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "ownerToken",
+            "value": "",
             "type": "string"
         }
     ]
