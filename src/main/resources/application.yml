@@ -6,7 +6,7 @@ spring:
     name: plazoleta-service
   
   datasource:
-    url: jdbc:postgresql://localhost:5432/plazoleta_db
+    url: jdbc:postgresql://localhost:5433/plazoleta_db
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
