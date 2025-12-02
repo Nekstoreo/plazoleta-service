@@ -30,6 +30,9 @@ public class OrderResponseDto {
     @Schema(description = "Nombre del restaurante", example = "Restaurante La Esquina")
     private String restaurantName;
 
+    @Schema(description = "ID del empleado asignado", example = "50")
+    private Long employeeId;
+
     @Schema(description = "Estado actual del pedido", example = "PENDING")
     private String status;
 
@@ -38,6 +41,9 @@ public class OrderResponseDto {
 
     @Schema(description = "Fecha y hora de última actualización", example = "2025-12-01T14:30:00")
     private LocalDateTime updatedAt;
+
+    @Schema(description = "Pin de seguridad para recoger el pedido", example = "123456")
+    private String securityPin;
 
     @Schema(description = "Lista de platos del pedido")
     private List<OrderItemResponseDto> items;
