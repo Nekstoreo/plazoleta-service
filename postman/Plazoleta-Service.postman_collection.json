@@ -535,6 +535,45 @@
               "description": "Lists orders in preparation status. Uses default pagination (page=0, size=10)."
             },
             "response": []
+          },
+          {
+            "name": "Assign Order to Employee",
+            "request": {
+              "auth": {
+                "type": "bearer",
+                "bearer": [
+                  {
+                    "key": "token",
+                    "value": "{{employeeToken}}",
+                    "type": "string"
+                  }
+                ]
+              },
+              "method": "PUT",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n  \"orderId\": 1\n}"
+              },
+              "url": {
+                "raw": "{{baseUrl}}/api/v1/orders",
+                "host": [
+                  "{{baseUrl}}"
+                ],
+                "path": [
+                  "api",
+                  "v1",
+                  "orders"
+                ]
+              },
+              "description": "Assigns a PENDING order to the authenticated employee and changes its status to IN_PREPARATION. The order must belong to the employee's restaurant."
+            },
+            "response": []
           }
         ]
         }
