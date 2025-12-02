@@ -7,7 +7,10 @@ import com.pragma.plazoleta.domain.exception.DishNotFoundException;
 import com.pragma.plazoleta.domain.exception.DishNotFromRestaurantException;
 import com.pragma.plazoleta.domain.exception.EmptyOrderException;
 import com.pragma.plazoleta.domain.exception.EmployeeNotAssociatedWithRestaurantException;
+import com.pragma.plazoleta.domain.exception.InvalidOrderStatusException;
 import com.pragma.plazoleta.domain.exception.InvalidQuantityException;
+import com.pragma.plazoleta.domain.exception.OrderNotFoundException;
+import com.pragma.plazoleta.domain.exception.OrderNotFromEmployeeRestaurantException;
 import com.pragma.plazoleta.domain.exception.RestaurantNotFoundException;
 import com.pragma.plazoleta.domain.model.Dish;
 import com.pragma.plazoleta.domain.model.Order;
@@ -57,6 +60,34 @@ public class OrderUseCase implements IOrderServicePort {
     public PagedResult<Order> getOrdersByRestaurantAndStatus(Long employeeId, OrderStatus status, int page, int size) {
         Long restaurantId = getEmployeeRestaurantId(employeeId);
         return orderPersistencePort.findByRestaurantIdAndStatusPaginated(restaurantId, status, page, size);
+    }
+
+    @Override
+    public Order assignOrderToEmployee(Long orderId, Long employeeId) {
+        Long restaurantId = getEmployeeRestaurantId(employeeId);
+        Order order = orderPersistencePort.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
+
+        validateOrderBelongsToRestaurant(order, restaurantId);
+        validateOrderIsPending(order);
+
+        order.setEmployeeId(employeeId);
+        order.setStatus(OrderStatus.IN_PREPARATION);
+        order.setUpdatedAt(LocalDateTime.now());
+
+        return orderPersistencePort.saveOrder(order);
+    }
+
+    private void validateOrderBelongsToRestaurant(Order order, Long restaurantId) {
+        if (!order.getRestaurantId().equals(restaurantId)) {
+            throw new OrderNotFromEmployeeRestaurantException(order.getId(), restaurantId);
+        }
+    }
+
+    private void validateOrderIsPending(Order order) {
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new InvalidOrderStatusException(order.getId(), order.getStatus().toString());
+        }
     }
 
     private Long getEmployeeRestaurantId(Long employeeId) {
