@@ -1,6 +1,7 @@
 package com.pragma.plazoleta.domain.usecase;
 
 import com.pragma.plazoleta.domain.exception.*;
+import com.pragma.plazoleta.domain.model.PagedResult;
 import com.pragma.plazoleta.domain.model.Restaurant;
 import com.pragma.plazoleta.domain.spi.IRestaurantPersistencePort;
 import com.pragma.plazoleta.domain.spi.IUserValidationPort;
@@ -13,6 +14,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -292,6 +295,90 @@ class RestaurantUseCaseTest {
                     () -> restaurantUseCase.createRestaurant(validRestaurant));
             assertTrue(exception.getMessage().contains("already exists with NIT"));
             verify(restaurantPersistencePort, never()).saveRestaurant(any(Restaurant.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("Get All Restaurants - Pagination")
+    class GetAllRestaurantsTests {
+
+        @Test
+        @DisplayName("Should return paginated restaurants ordered alphabetically")
+        void shouldReturnPaginatedRestaurantsOrderedAlphabetically() {
+            // Arrange
+            Restaurant restaurant1 = new Restaurant();
+            restaurant1.setId(1L);
+            restaurant1.setName("Alitas Locas");
+            restaurant1.setLogoUrl("https://example.com/alitas.png");
+
+            Restaurant restaurant2 = new Restaurant();
+            restaurant2.setId(2L);
+            restaurant2.setName("Burger King");
+            restaurant2.setLogoUrl("https://example.com/burger.png");
+
+            List<Restaurant> restaurants = Arrays.asList(restaurant1, restaurant2);
+            PagedResult<Restaurant> pagedResult = PagedResult.of(restaurants, 0, 10, 2, 1);
+
+            when(restaurantPersistencePort.findAllOrderedByNamePaginated(0, 10)).thenReturn(pagedResult);
+
+            // Act
+            PagedResult<Restaurant> result = restaurantUseCase.getAllRestaurants(0, 10);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(2, result.getContent().size());
+            assertEquals("Alitas Locas", result.getContent().get(0).getName());
+            assertEquals("Burger King", result.getContent().get(1).getName());
+            assertEquals(0, result.getPage());
+            assertEquals(10, result.getSize());
+            assertEquals(2, result.getTotalElements());
+            assertEquals(1, result.getTotalPages());
+            assertTrue(result.isFirst());
+            assertTrue(result.isLast());
+
+            verify(restaurantPersistencePort).findAllOrderedByNamePaginated(0, 10);
+        }
+
+        @Test
+        @DisplayName("Should return empty page when no restaurants exist")
+        void shouldReturnEmptyPageWhenNoRestaurantsExist() {
+            // Arrange
+            PagedResult<Restaurant> pagedResult = PagedResult.of(List.of(), 0, 10, 0, 0);
+            when(restaurantPersistencePort.findAllOrderedByNamePaginated(0, 10)).thenReturn(pagedResult);
+
+            // Act
+            PagedResult<Restaurant> result = restaurantUseCase.getAllRestaurants(0, 10);
+
+            // Assert
+            assertNotNull(result);
+            assertTrue(result.getContent().isEmpty());
+            assertEquals(0, result.getTotalElements());
+        }
+
+        @Test
+        @DisplayName("Should correctly paginate with different page sizes")
+        void shouldCorrectlyPaginateWithDifferentPageSizes() {
+            // Arrange
+            Restaurant restaurant = new Restaurant();
+            restaurant.setId(1L);
+            restaurant.setName("Test Restaurant");
+            restaurant.setLogoUrl("https://example.com/test.png");
+
+            PagedResult<Restaurant> pagedResult = PagedResult.of(List.of(restaurant), 1, 5, 10, 2);
+            when(restaurantPersistencePort.findAllOrderedByNamePaginated(1, 5)).thenReturn(pagedResult);
+
+            // Act
+            PagedResult<Restaurant> result = restaurantUseCase.getAllRestaurants(1, 5);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(1, result.getContent().size());
+            assertEquals(1, result.getPage());
+            assertEquals(5, result.getSize());
+            assertEquals(10, result.getTotalElements());
+            assertEquals(2, result.getTotalPages());
+            assertFalse(result.isFirst());
+            assertTrue(result.isLast());
         }
     }
 }

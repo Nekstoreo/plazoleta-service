@@ -1,21 +1,27 @@
 package com.pragma.plazoleta.application.handler;
 
 import com.pragma.plazoleta.application.dto.request.CreateRestaurantRequest;
+import com.pragma.plazoleta.application.dto.response.PagedResponse;
+import com.pragma.plazoleta.application.dto.response.RestaurantListItemResponse;
 import com.pragma.plazoleta.application.dto.response.RestaurantResponse;
 import com.pragma.plazoleta.application.mapper.RestaurantRequestMapper;
 import com.pragma.plazoleta.application.mapper.RestaurantResponseMapper;
 import com.pragma.plazoleta.domain.api.IRestaurantServicePort;
+import com.pragma.plazoleta.domain.model.PagedResult;
 import com.pragma.plazoleta.domain.model.Restaurant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -151,5 +157,102 @@ class RestaurantHandlerTest {
 
         // Assert
         verify(restaurantResponseMapper).toResponse(savedRestaurant);
+    }
+
+    @Nested
+    @DisplayName("Get All Restaurants")
+    class GetAllRestaurantsTests {
+
+        @Test
+        @DisplayName("Should return paginated restaurant list items")
+        void shouldReturnPaginatedRestaurantListItems() {
+            // Arrange
+            Restaurant restaurant1 = new Restaurant();
+            restaurant1.setId(1L);
+            restaurant1.setName("Alitas Locas");
+            restaurant1.setLogoUrl("https://example.com/alitas.png");
+
+            Restaurant restaurant2 = new Restaurant();
+            restaurant2.setId(2L);
+            restaurant2.setName("Burger King");
+            restaurant2.setLogoUrl("https://example.com/burger.png");
+
+            List<Restaurant> restaurants = Arrays.asList(restaurant1, restaurant2);
+            PagedResult<Restaurant> pagedResult = PagedResult.of(restaurants, 0, 10, 2, 1);
+
+            RestaurantListItemResponse item1 = RestaurantListItemResponse.builder()
+                    .name("Alitas Locas")
+                    .logoUrl("https://example.com/alitas.png")
+                    .build();
+
+            RestaurantListItemResponse item2 = RestaurantListItemResponse.builder()
+                    .name("Burger King")
+                    .logoUrl("https://example.com/burger.png")
+                    .build();
+
+            when(restaurantServicePort.getAllRestaurants(0, 10)).thenReturn(pagedResult);
+            when(restaurantResponseMapper.toListItemResponse(restaurant1)).thenReturn(item1);
+            when(restaurantResponseMapper.toListItemResponse(restaurant2)).thenReturn(item2);
+
+            // Act
+            PagedResponse<RestaurantListItemResponse> result = restaurantHandler.getAllRestaurants(0, 10);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(2, result.getContent().size());
+            assertEquals("Alitas Locas", result.getContent().get(0).getName());
+            assertEquals("https://example.com/alitas.png", result.getContent().get(0).getLogoUrl());
+            assertEquals("Burger King", result.getContent().get(1).getName());
+            assertEquals("https://example.com/burger.png", result.getContent().get(1).getLogoUrl());
+            assertEquals(0, result.getPage());
+            assertEquals(10, result.getSize());
+            assertEquals(2, result.getTotalElements());
+            assertEquals(1, result.getTotalPages());
+            assertTrue(result.isFirst());
+            assertTrue(result.isLast());
+
+            verify(restaurantServicePort).getAllRestaurants(0, 10);
+            verify(restaurantResponseMapper).toListItemResponse(restaurant1);
+            verify(restaurantResponseMapper).toListItemResponse(restaurant2);
+        }
+
+        @Test
+        @DisplayName("Should return empty paged response when no restaurants exist")
+        void shouldReturnEmptyPagedResponseWhenNoRestaurantsExist() {
+            // Arrange
+            PagedResult<Restaurant> pagedResult = PagedResult.of(List.of(), 0, 10, 0, 0);
+            when(restaurantServicePort.getAllRestaurants(0, 10)).thenReturn(pagedResult);
+
+            // Act
+            PagedResponse<RestaurantListItemResponse> result = restaurantHandler.getAllRestaurants(0, 10);
+
+            // Assert
+            assertNotNull(result);
+            assertTrue(result.getContent().isEmpty());
+            assertEquals(0, result.getTotalElements());
+            assertEquals(0, result.getTotalPages());
+        }
+
+        @Test
+        @DisplayName("Should correctly pass pagination parameters to service")
+        void shouldCorrectlyPassPaginationParametersToService() {
+            // Arrange
+            PagedResult<Restaurant> pagedResult = PagedResult.of(List.of(), 2, 5, 15, 3);
+            when(restaurantServicePort.getAllRestaurants(2, 5)).thenReturn(pagedResult);
+
+            // Act
+            PagedResponse<RestaurantListItemResponse> result = restaurantHandler.getAllRestaurants(2, 5);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(2, result.getPage());
+            assertEquals(5, result.getSize());
+            assertEquals(15, result.getTotalElements());
+            assertEquals(3, result.getTotalPages());
+            assertFalse(result.isFirst());
+            assertTrue(result.isLast());
+
+            verify(restaurantServicePort).getAllRestaurants(2, 5);
+        }
     }
 }
