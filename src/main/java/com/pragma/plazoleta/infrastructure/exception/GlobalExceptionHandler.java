@@ -23,7 +23,11 @@ public class GlobalExceptionHandler {
             InvalidNitException.class,
             InvalidPhoneException.class,
             InvalidPriceException.class,
-            InvalidActiveStatusException.class
+            InvalidActiveStatusException.class,
+            EmptyOrderException.class,
+            InvalidQuantityException.class,
+            DishNotFromRestaurantException.class,
+            DishNotActiveException.class
     })
     public ResponseEntity<ErrorResponse> handleValidationExceptions(
             RuntimeException ex, HttpServletRequest request) {
@@ -71,7 +75,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({
-            RestaurantAlreadyExistsException.class
+            RestaurantAlreadyExistsException.class,
+            ClientHasActiveOrderException.class
     })
     public ResponseEntity<ErrorResponse> handleConflictException(
             RuntimeException ex, HttpServletRequest request) {
