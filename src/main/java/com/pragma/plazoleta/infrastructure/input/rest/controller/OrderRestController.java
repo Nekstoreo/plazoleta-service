@@ -1,5 +1,6 @@
 package com.pragma.plazoleta.infrastructure.input.rest.controller;
 
+import com.pragma.plazoleta.application.dto.request.AssignOrderRequestDto;
 import com.pragma.plazoleta.application.dto.request.CreateOrderRequestDto;
 import com.pragma.plazoleta.application.dto.response.OrderResponseDto;
 import com.pragma.plazoleta.application.dto.response.PagedResponse;
@@ -20,6 +21,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -105,6 +107,38 @@ public class OrderRestController {
             @RequestParam(defaultValue = "10") @Min(1) int size) {
         Long employeeId = getAuthenticatedUserId();
         PagedResponse<OrderResponseDto> response = orderHandler.getOrdersByStatus(employeeId, status, page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Assign order to employee and change status to IN_PREPARATION",
+            description = "Allows an employee to assign an order to themselves and change its status from PENDING to IN_PREPARATION. " +
+                    "Only PENDING orders from the employee's restaurant can be assigned.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Order assigned successfully and status updated",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = OrderResponseDto.class))),
+            @ApiResponse(responseCode = "400",
+                    description = "Invalid input data or invalid order status (only PENDING orders can be assigned)",
+                    content = @Content),
+            @ApiResponse(responseCode = "401",
+                    description = "Not authenticated",
+                    content = @Content),
+            @ApiResponse(responseCode = "403",
+                    description = "Not authorized - requires EMPLOYEE role",
+                    content = @Content),
+            @ApiResponse(responseCode = "404",
+                    description = "Order not found or employee not associated with any restaurant",
+                    content = @Content),
+            @ApiResponse(responseCode = "409",
+                    description = "Order does not belong to the employee's restaurant",
+                    content = @Content)
+    })
+    @PutMapping
+    public ResponseEntity<OrderResponseDto> assignOrderToEmployee(
+            @Valid @RequestBody AssignOrderRequestDto request) {
+        Long employeeId = getAuthenticatedUserId();
+        OrderResponseDto response = orderHandler.assignOrderToEmployee(request, employeeId);
         return ResponseEntity.ok(response);
     }
 
