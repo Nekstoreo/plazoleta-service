@@ -45,6 +45,8 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/dishes/**").hasRole("OWNER")
                         // Orders - only CLIENT can create orders
                         .requestMatchers(HttpMethod.POST, "/api/v1/orders").hasRole("CLIENT")
+                        // Orders - only EMPLOYEE can list orders by status
+                        .requestMatchers(HttpMethod.GET, "/api/v1/orders").hasRole("EMPLOYEE")
                         // All other requests require authentication
                         .anyRequest().authenticated()
                 )

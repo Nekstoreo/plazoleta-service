@@ -2,8 +2,10 @@ package com.pragma.plazoleta.infrastructure.input.rest.controller;
 
 import com.pragma.plazoleta.application.dto.request.CreateOrderRequestDto;
 import com.pragma.plazoleta.application.dto.response.OrderResponseDto;
+import com.pragma.plazoleta.application.dto.response.PagedResponse;
 import com.pragma.plazoleta.application.handler.IOrderHandler;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -11,18 +13,21 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/orders")
-@Tag(name = "Orders", description = "Order management API for clients")
+@Tag(name = "Orders", description = "Order management API for clients and employees")
 @SecurityRequirement(name = "bearerAuth")
 public class OrderRestController {
 
@@ -63,6 +68,44 @@ public class OrderRestController {
         Long clientId = getAuthenticatedUserId();
         OrderResponseDto response = orderHandler.createOrder(request, clientId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @Operation(summary = "List orders by status",
+            description = "Retrieves a paginated list of orders filtered by status. " +
+                    "Only employees can access this endpoint. " +
+                    "Orders are filtered by the restaurant associated with the employee.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Orders retrieved successfully",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = PagedResponse.class))),
+            @ApiResponse(responseCode = "400",
+                    description = "Invalid status value",
+                    content = @Content),
+            @ApiResponse(responseCode = "401",
+                    description = "Not authenticated",
+                    content = @Content),
+            @ApiResponse(responseCode = "403",
+                    description = "Not authorized - requires EMPLOYEE role",
+                    content = @Content),
+            @ApiResponse(responseCode = "404",
+                    description = "Employee not associated with any restaurant",
+                    content = @Content)
+    })
+    @GetMapping
+    public ResponseEntity<PagedResponse<OrderResponseDto>> getOrdersByStatus(
+            @Parameter(description = "Order status to filter by", 
+                    required = true, 
+                    example = "PENDING",
+                    schema = @Schema(allowableValues = {"PENDING", "IN_PREPARATION", "READY", "DELIVERED", "CANCELLED"}))
+            @RequestParam String status,
+            @Parameter(description = "Page number (0-based)", example = "0")
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @Parameter(description = "Number of elements per page", example = "10")
+            @RequestParam(defaultValue = "10") @Min(1) int size) {
+        Long employeeId = getAuthenticatedUserId();
+        PagedResponse<OrderResponseDto> response = orderHandler.getOrdersByStatus(employeeId, status, page, size);
+        return ResponseEntity.ok(response);
     }
 
     private Long getAuthenticatedUserId() {
