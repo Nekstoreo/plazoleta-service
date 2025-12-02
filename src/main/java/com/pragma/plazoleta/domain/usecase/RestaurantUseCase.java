@@ -2,6 +2,7 @@ package com.pragma.plazoleta.domain.usecase;
 
 import com.pragma.plazoleta.domain.api.IRestaurantServicePort;
 import com.pragma.plazoleta.domain.exception.*;
+import com.pragma.plazoleta.domain.model.PagedResult;
 import com.pragma.plazoleta.domain.model.Restaurant;
 import com.pragma.plazoleta.domain.spi.IRestaurantPersistencePort;
 import com.pragma.plazoleta.domain.spi.IUserValidationPort;
@@ -40,6 +41,11 @@ public class RestaurantUseCase implements IRestaurantServicePort {
         validateRestaurantDoesNotExist(restaurant.getNit());
 
         return restaurantPersistencePort.saveRestaurant(restaurant);
+    }
+
+    @Override
+    public PagedResult<Restaurant> getAllRestaurants(int page, int size) {
+        return restaurantPersistencePort.findAllOrderedByNamePaginated(page, size);
     }
 
     private void validateName(String name) {
