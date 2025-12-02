@@ -5,14 +5,17 @@ import com.pragma.plazoleta.domain.exception.DishNotActiveException;
 import com.pragma.plazoleta.domain.exception.DishNotFoundException;
 import com.pragma.plazoleta.domain.exception.DishNotFromRestaurantException;
 import com.pragma.plazoleta.domain.exception.EmptyOrderException;
+import com.pragma.plazoleta.domain.exception.EmployeeNotAssociatedWithRestaurantException;
 import com.pragma.plazoleta.domain.exception.InvalidQuantityException;
 import com.pragma.plazoleta.domain.exception.RestaurantNotFoundException;
 import com.pragma.plazoleta.domain.model.Dish;
 import com.pragma.plazoleta.domain.model.Order;
 import com.pragma.plazoleta.domain.model.OrderItem;
 import com.pragma.plazoleta.domain.model.OrderStatus;
+import com.pragma.plazoleta.domain.model.PagedResult;
 import com.pragma.plazoleta.domain.model.Restaurant;
 import com.pragma.plazoleta.domain.spi.IDishPersistencePort;
+import com.pragma.plazoleta.domain.spi.IEmployeeRestaurantPort;
 import com.pragma.plazoleta.domain.spi.IOrderPersistencePort;
 import com.pragma.plazoleta.domain.spi.IRestaurantPersistencePort;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +38,8 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -51,6 +56,9 @@ class OrderUseCaseTest {
     @Mock
     private IDishPersistencePort dishPersistencePort;
 
+    @Mock
+    private IEmployeeRestaurantPort employeeRestaurantPort;
+
     @InjectMocks
     private OrderUseCase orderUseCase;
 
@@ -58,6 +66,7 @@ class OrderUseCaseTest {
     private static final Long RESTAURANT_ID = 10L;
     private static final Long DISH_ID_1 = 100L;
     private static final Long DISH_ID_2 = 101L;
+    private static final Long EMPLOYEE_ID = 50L;
 
     private Restaurant restaurant;
     private Dish dish1;
@@ -417,6 +426,109 @@ class OrderUseCaseTest {
 
             verify(dishPersistencePort, never()).findById(any());
             verify(orderPersistencePort, never()).saveOrder(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("Get Orders By Restaurant And Status")
+    class GetOrdersByRestaurantAndStatus {
+
+        @Test
+        @DisplayName("Should return paginated orders when employee is associated with restaurant")
+        void shouldReturnPaginatedOrdersSuccessfully() {
+            int page = 0;
+            int size = 10;
+            OrderStatus status = OrderStatus.PENDING;
+
+            Order order1 = createSavedOrder(1L, createOrder(CLIENT_ID, RESTAURANT_ID, List.of(new OrderItem(DISH_ID_1, 1))));
+            Order order2 = createSavedOrder(2L, createOrder(2L, RESTAURANT_ID, List.of(new OrderItem(DISH_ID_2, 2))));
+
+            PagedResult<Order> expectedResult = PagedResult.of(
+                    Arrays.asList(order1, order2),
+                    page,
+                    size,
+                    2L,
+                    1
+            );
+
+            when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
+                    .thenReturn(Optional.of(RESTAURANT_ID));
+            when(orderPersistencePort.findByRestaurantIdAndStatusPaginated(eq(RESTAURANT_ID), eq(status), eq(page), eq(size)))
+                    .thenReturn(expectedResult);
+
+            PagedResult<Order> result = orderUseCase.getOrdersByRestaurantAndStatus(EMPLOYEE_ID, status, page, size);
+
+            assertThat(result).isNotNull();
+            assertThat(result.getContent()).hasSize(2);
+            assertThat(result.getPage()).isEqualTo(page);
+            assertThat(result.getSize()).isEqualTo(size);
+            assertThat(result.getTotalElements()).isEqualTo(2L);
+
+            verify(employeeRestaurantPort).getRestaurantIdByEmployeeId(EMPLOYEE_ID);
+            verify(orderPersistencePort).findByRestaurantIdAndStatusPaginated(RESTAURANT_ID, status, page, size);
+        }
+
+        @Test
+        @DisplayName("Should return empty result when no orders match filter")
+        void shouldReturnEmptyResultWhenNoOrdersMatch() {
+            int page = 0;
+            int size = 10;
+            OrderStatus status = OrderStatus.READY;
+
+            PagedResult<Order> emptyResult = PagedResult.of(
+                    new ArrayList<>(),
+                    page,
+                    size,
+                    0L,
+                    0
+            );
+
+            when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
+                    .thenReturn(Optional.of(RESTAURANT_ID));
+            when(orderPersistencePort.findByRestaurantIdAndStatusPaginated(eq(RESTAURANT_ID), eq(status), eq(page), eq(size)))
+                    .thenReturn(emptyResult);
+
+            PagedResult<Order> result = orderUseCase.getOrdersByRestaurantAndStatus(EMPLOYEE_ID, status, page, size);
+
+            assertThat(result).isNotNull();
+            assertThat(result.getContent()).isEmpty();
+            assertThat(result.getTotalElements()).isZero();
+        }
+
+        @Test
+        @DisplayName("Should throw exception when employee is not associated with restaurant")
+        void shouldThrowWhenEmployeeNotAssociatedWithRestaurant() {
+            when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
+                    .thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> orderUseCase.getOrdersByRestaurantAndStatus(EMPLOYEE_ID, OrderStatus.PENDING, 0, 10))
+                    .isInstanceOf(EmployeeNotAssociatedWithRestaurantException.class)
+                    .hasMessageContaining(EMPLOYEE_ID.toString());
+
+            verify(orderPersistencePort, never()).findByRestaurantIdAndStatusPaginated(any(), any(), anyInt(), anyInt());
+        }
+
+        @Test
+        @DisplayName("Should handle different order statuses")
+        void shouldHandleDifferentOrderStatuses() {
+            int page = 0;
+            int size = 5;
+
+            when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
+                    .thenReturn(Optional.of(RESTAURANT_ID));
+
+            for (OrderStatus status : OrderStatus.values()) {
+                PagedResult<Order> mockResult = PagedResult.of(
+                        new ArrayList<>(), page, size, 0L, 0);
+
+                when(orderPersistencePort.findByRestaurantIdAndStatusPaginated(RESTAURANT_ID, status, page, size))
+                        .thenReturn(mockResult);
+
+                PagedResult<Order> result = orderUseCase.getOrdersByRestaurantAndStatus(EMPLOYEE_ID, status, page, size);
+
+                assertThat(result).isNotNull();
+                verify(orderPersistencePort).findByRestaurantIdAndStatusPaginated(RESTAURANT_ID, status, page, size);
+            }
         }
     }
 
