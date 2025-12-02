@@ -7,6 +7,7 @@ import com.pragma.plazoleta.domain.exception.InvalidPriceException;
 import com.pragma.plazoleta.domain.exception.RestaurantNotFoundException;
 import com.pragma.plazoleta.domain.exception.UserNotRestaurantOwnerException;
 import com.pragma.plazoleta.domain.model.Dish;
+import com.pragma.plazoleta.domain.model.PagedResult;
 import com.pragma.plazoleta.domain.model.Restaurant;
 import com.pragma.plazoleta.domain.spi.IDishPersistencePort;
 import com.pragma.plazoleta.domain.spi.IRestaurantPersistencePort;
@@ -71,6 +72,19 @@ public class DishUseCase implements IDishServicePort {
         dish.setActive(active);
 
         return dishPersistencePort.saveDish(dish);
+    }
+
+    @Override
+    public PagedResult<Dish> getDishesByRestaurant(Long restaurantId, String category, int page, int size) {
+        restaurantPersistencePort.findById(restaurantId)
+                .orElseThrow(() -> new RestaurantNotFoundException(restaurantId));
+
+        if (category != null && !category.isBlank()) {
+            return dishPersistencePort.findActiveDishesByRestaurantIdAndCategory(
+                    restaurantId, category.trim(), page, size);
+        }
+        
+        return dishPersistencePort.findActiveDishesByRestaurantId(restaurantId, page, size);
     }
 
     private void validatePrice(Integer price) {
