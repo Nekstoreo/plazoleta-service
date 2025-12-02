@@ -370,6 +370,89 @@
                     "response": []
                 }
             ]
+        },
+      {
+        "name": "Orders",
+        "item": [
+          {
+            "name": "Create Order - Success",
+            "request": {
+              "auth": {
+                "type": "bearer",
+                "bearer": [
+                  {
+                    "key": "token",
+                    "value": "{{clientToken}}",
+                    "type": "string"
+                  }
+                ]
+              },
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n  \"restaurantId\": 1,\n  \"items\": [\n    {\n      \"dishId\": 1,\n      \"quantity\": 2\n    },\n    {\n      \"dishId\": 2,\n      \"quantity\": 1\n    }\n  ]\n}"
+              },
+              "url": {
+                "raw": "{{baseUrl}}/api/v1/orders",
+                "host": [
+                  "{{baseUrl}}"
+                ],
+                "path": [
+                  "api",
+                  "v1",
+                  "orders"
+                ]
+              },
+              "description": "Creates a new order for the authenticated client. The order must contain at least one dish from the specified restaurant. A client can only have one active order at a time."
+            },
+            "response": []
+          },
+          {
+            "name": "Create Order - Single Item",
+            "request": {
+              "auth": {
+                "type": "bearer",
+                "bearer": [
+                  {
+                    "key": "token",
+                    "value": "{{clientToken}}",
+                    "type": "string"
+                  }
+                ]
+              },
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n  \"restaurantId\": 1,\n  \"items\": [\n    {\n      \"dishId\": 1,\n      \"quantity\": 1\n    }\n  ]\n}"
+              },
+              "url": {
+                "raw": "{{baseUrl}}/api/v1/orders",
+                "host": [
+                  "{{baseUrl}}"
+                ],
+                "path": [
+                  "api",
+                  "v1",
+                  "orders"
+                ]
+              },
+              "description": "Creates a new order with a single dish item."
+            },
+            "response": []
+          }
+        ]
         }
     ],
     "variable": [
