@@ -3,10 +3,13 @@ package com.pragma.plazoleta.application.handler;
 import com.pragma.plazoleta.application.dto.request.DishActiveRequestDto;
 import com.pragma.plazoleta.application.dto.request.DishRequestDto;
 import com.pragma.plazoleta.application.dto.request.DishUpdateRequestDto;
+import com.pragma.plazoleta.application.dto.response.DishMenuItemResponseDto;
 import com.pragma.plazoleta.application.dto.response.DishResponseDto;
+import com.pragma.plazoleta.application.dto.response.PagedResponse;
 import com.pragma.plazoleta.application.mapper.DishDtoMapper;
 import com.pragma.plazoleta.domain.api.IDishServicePort;
 import com.pragma.plazoleta.domain.model.Dish;
+import com.pragma.plazoleta.domain.model.PagedResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -15,6 +18,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Arrays;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -206,6 +212,109 @@ class DishHandlerTest {
 
             verify(dishServicePort).changeDishActiveStatus(DISH_ID, false, OWNER_ID);
             verify(dishDtoMapper).toDishResponseDto(deactivatedDish);
+        }
+    }
+
+    @Nested
+    @DisplayName("Get Dishes By Restaurant Tests")
+    class GetDishesByRestaurantTests {
+
+        @Test
+        @DisplayName("Should return paginated dishes without category filter")
+        void shouldReturnPaginatedDishesWithoutCategoryFilter() {
+            Dish dish1 = createDish(1L, "Hamburguesa", "Hamburguesas");
+            Dish dish2 = createDish(2L, "Pizza", "Pizzas");
+            List<Dish> dishes = Arrays.asList(dish1, dish2);
+            PagedResult<Dish> pagedResult = PagedResult.of(dishes, 0, 10, 2, 1);
+
+            DishMenuItemResponseDto menuItem1 = createMenuItemDto(1L, "Hamburguesa", "Hamburguesas");
+            DishMenuItemResponseDto menuItem2 = createMenuItemDto(2L, "Pizza", "Pizzas");
+
+            when(dishServicePort.getDishesByRestaurant(RESTAURANT_ID, null, 0, 10))
+                    .thenReturn(pagedResult);
+            when(dishDtoMapper.toDishMenuItemResponseDto(dish1)).thenReturn(menuItem1);
+            when(dishDtoMapper.toDishMenuItemResponseDto(dish2)).thenReturn(menuItem2);
+
+            PagedResponse<DishMenuItemResponseDto> result = dishHandler.getDishesByRestaurant(
+                    RESTAURANT_ID, null, 0, 10);
+
+            assertThat(result).isNotNull();
+            assertThat(result.getContent()).hasSize(2);
+            assertThat(result.getPage()).isZero();
+            assertThat(result.getSize()).isEqualTo(10);
+            assertThat(result.getTotalElements()).isEqualTo(2);
+            assertThat(result.getTotalPages()).isEqualTo(1);
+            assertThat(result.isFirst()).isTrue();
+            assertThat(result.isLast()).isTrue();
+
+            verify(dishServicePort).getDishesByRestaurant(RESTAURANT_ID, null, 0, 10);
+        }
+
+        @Test
+        @DisplayName("Should return paginated dishes with category filter")
+        void shouldReturnPaginatedDishesWithCategoryFilter() {
+            String category = "Hamburguesas";
+            Dish dish1 = createDish(1L, "Hamburguesa Clásica", category);
+            List<Dish> dishes = List.of(dish1);
+            PagedResult<Dish> pagedResult = PagedResult.of(dishes, 0, 10, 1, 1);
+
+            DishMenuItemResponseDto menuItem1 = createMenuItemDto(1L, "Hamburguesa Clásica", category);
+
+            when(dishServicePort.getDishesByRestaurant(RESTAURANT_ID, category, 0, 10))
+                    .thenReturn(pagedResult);
+            when(dishDtoMapper.toDishMenuItemResponseDto(dish1)).thenReturn(menuItem1);
+
+            PagedResponse<DishMenuItemResponseDto> result = dishHandler.getDishesByRestaurant(
+                    RESTAURANT_ID, category, 0, 10);
+
+            assertThat(result).isNotNull();
+            assertThat(result.getContent()).hasSize(1);
+            assertThat(result.getContent().get(0).getCategory()).isEqualTo(category);
+
+            verify(dishServicePort).getDishesByRestaurant(RESTAURANT_ID, category, 0, 10);
+        }
+
+        @Test
+        @DisplayName("Should return empty result when no dishes found")
+        void shouldReturnEmptyResultWhenNoDishesFound() {
+            PagedResult<Dish> emptyResult = PagedResult.of(List.of(), 0, 10, 0, 0);
+
+            when(dishServicePort.getDishesByRestaurant(RESTAURANT_ID, null, 0, 10))
+                    .thenReturn(emptyResult);
+
+            PagedResponse<DishMenuItemResponseDto> result = dishHandler.getDishesByRestaurant(
+                    RESTAURANT_ID, null, 0, 10);
+
+            assertThat(result).isNotNull();
+            assertThat(result.getContent()).isEmpty();
+            assertThat(result.getTotalElements()).isZero();
+
+            verify(dishServicePort).getDishesByRestaurant(RESTAURANT_ID, null, 0, 10);
+        }
+
+        private Dish createDish(Long id, String name, String category) {
+            Dish createdDish = new Dish(
+                    name,
+                    25000,
+                    "Descripción del plato",
+                    "https://example.com/image.jpg",
+                    category,
+                    RESTAURANT_ID
+            );
+            createdDish.setId(id);
+            createdDish.setActive(true);
+            return createdDish;
+        }
+
+        private DishMenuItemResponseDto createMenuItemDto(Long id, String name, String category) {
+            return DishMenuItemResponseDto.builder()
+                    .id(id)
+                    .name(name)
+                    .price(25000)
+                    .description("Descripción del plato")
+                    .imageUrl("https://example.com/image.jpg")
+                    .category(category)
+                    .build();
         }
     }
 }

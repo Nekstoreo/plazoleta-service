@@ -2,11 +2,15 @@ package com.pragma.plazoleta.infrastructure.input.rest.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pragma.plazoleta.application.dto.request.CreateRestaurantRequest;
+import com.pragma.plazoleta.application.dto.response.DishMenuItemResponseDto;
+import com.pragma.plazoleta.application.dto.response.PagedResponse;
 import com.pragma.plazoleta.application.dto.response.RestaurantResponse;
+import com.pragma.plazoleta.application.handler.IDishHandler;
 import com.pragma.plazoleta.application.handler.IRestaurantHandler;
 import com.pragma.plazoleta.domain.exception.InvalidRestaurantNameException;
 import com.pragma.plazoleta.domain.exception.OwnerNotFoundException;
 import com.pragma.plazoleta.domain.exception.RestaurantAlreadyExistsException;
+import com.pragma.plazoleta.domain.exception.RestaurantNotFoundException;
 import com.pragma.plazoleta.domain.exception.UserNotOwnerException;
 import com.pragma.plazoleta.infrastructure.exception.GlobalExceptionHandler;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,8 +25,13 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.Arrays;
+import java.util.List;
+
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -40,6 +49,9 @@ class RestaurantRestControllerTest {
 
     @Mock
     private IRestaurantHandler restaurantHandler;
+
+    @Mock
+    private IDishHandler dishHandler;
 
     @InjectMocks
     private RestaurantRestController restaurantRestController;
@@ -268,6 +280,182 @@ class RestaurantRestControllerTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isConflict())
                     .andExpect(jsonPath(MESSAGE_JSON_PATH).value("A restaurant already exists with NIT: " + RESTAURANT_NIT));
+        }
+    }
+
+    @Nested
+    @DisplayName("Get Dishes By Restaurant - Success Cases")
+    class GetDishesByRestaurantSuccessCases {
+
+        private static final Long RESTAURANT_ID = 1L;
+
+        @Test
+        @DisplayName("Should return paginated dishes without category filter")
+        void shouldReturnPaginatedDishesWithoutCategoryFilter() throws Exception {
+            // Arrange
+            DishMenuItemResponseDto dish1 = DishMenuItemResponseDto.builder()
+                    .id(1L)
+                    .name("Hamburguesa Clásica")
+                    .price(25000)
+                    .description("Deliciosa hamburguesa")
+                    .imageUrl("https://example.com/burger.jpg")
+                    .category("Hamburguesas")
+                    .build();
+
+            DishMenuItemResponseDto dish2 = DishMenuItemResponseDto.builder()
+                    .id(2L)
+                    .name("Pizza Margarita")
+                    .price(35000)
+                    .description("Pizza tradicional")
+                    .imageUrl("https://example.com/pizza.jpg")
+                    .category("Pizzas")
+                    .build();
+
+            PagedResponse<DishMenuItemResponseDto> response = PagedResponse.<DishMenuItemResponseDto>builder()
+                    .content(Arrays.asList(dish1, dish2))
+                    .page(0)
+                    .size(10)
+                    .totalElements(2)
+                    .totalPages(1)
+                    .first(true)
+                    .last(true)
+                    .build();
+
+            when(dishHandler.getDishesByRestaurant(eq(RESTAURANT_ID), eq(null), eq(0), eq(10)))
+                    .thenReturn(response);
+
+            // Act & Assert
+            mockMvc.perform(get(BASE_URL + "/" + RESTAURANT_ID + "/dishes")
+                            .param("page", "0")
+                            .param("size", "10"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.content").isArray())
+                    .andExpect(jsonPath("$.content.length()").value(2))
+                    .andExpect(jsonPath("$.content[0].name").value("Hamburguesa Clásica"))
+                    .andExpect(jsonPath("$.content[1].name").value("Pizza Margarita"))
+                    .andExpect(jsonPath("$.page").value(0))
+                    .andExpect(jsonPath("$.size").value(10))
+                    .andExpect(jsonPath("$.totalElements").value(2))
+                    .andExpect(jsonPath("$.totalPages").value(1))
+                    .andExpect(jsonPath("$.first").value(true))
+                    .andExpect(jsonPath("$.last").value(true));
+
+            verify(dishHandler).getDishesByRestaurant(eq(RESTAURANT_ID), eq(null), eq(0), eq(10));
+        }
+
+        @Test
+        @DisplayName("Should return paginated dishes with category filter")
+        void shouldReturnPaginatedDishesWithCategoryFilter() throws Exception {
+            // Arrange
+            String category = "Hamburguesas";
+            DishMenuItemResponseDto dish1 = DishMenuItemResponseDto.builder()
+                    .id(1L)
+                    .name("Hamburguesa Clásica")
+                    .price(25000)
+                    .description("Deliciosa hamburguesa")
+                    .imageUrl("https://example.com/burger.jpg")
+                    .category(category)
+                    .build();
+
+            PagedResponse<DishMenuItemResponseDto> response = PagedResponse.<DishMenuItemResponseDto>builder()
+                    .content(List.of(dish1))
+                    .page(0)
+                    .size(10)
+                    .totalElements(1)
+                    .totalPages(1)
+                    .first(true)
+                    .last(true)
+                    .build();
+
+            when(dishHandler.getDishesByRestaurant(eq(RESTAURANT_ID), eq(category), eq(0), eq(10)))
+                    .thenReturn(response);
+
+            // Act & Assert
+            mockMvc.perform(get(BASE_URL + "/" + RESTAURANT_ID + "/dishes")
+                            .param("category", category)
+                            .param("page", "0")
+                            .param("size", "10"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content.length()").value(1))
+                    .andExpect(jsonPath("$.content[0].category").value(category));
+
+            verify(dishHandler).getDishesByRestaurant(eq(RESTAURANT_ID), eq(category), eq(0), eq(10));
+        }
+
+        @Test
+        @DisplayName("Should return empty list when no dishes found")
+        void shouldReturnEmptyListWhenNoDishesFound() throws Exception {
+            // Arrange
+            PagedResponse<DishMenuItemResponseDto> emptyResponse = PagedResponse.<DishMenuItemResponseDto>builder()
+                    .content(List.of())
+                    .page(0)
+                    .size(10)
+                    .totalElements(0)
+                    .totalPages(0)
+                    .first(true)
+                    .last(true)
+                    .build();
+
+            when(dishHandler.getDishesByRestaurant(eq(RESTAURANT_ID), eq(null), eq(0), eq(10)))
+                    .thenReturn(emptyResponse);
+
+            // Act & Assert
+            mockMvc.perform(get(BASE_URL + "/" + RESTAURANT_ID + "/dishes")
+                            .param("page", "0")
+                            .param("size", "10"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content").isArray())
+                    .andExpect(jsonPath("$.content.length()").value(0))
+                    .andExpect(jsonPath("$.totalElements").value(0));
+
+            verify(dishHandler).getDishesByRestaurant(eq(RESTAURANT_ID), eq(null), eq(0), eq(10));
+        }
+
+        @Test
+        @DisplayName("Should use default pagination values when not provided")
+        void shouldUseDefaultPaginationValuesWhenNotProvided() throws Exception {
+            // Arrange
+            PagedResponse<DishMenuItemResponseDto> response = PagedResponse.<DishMenuItemResponseDto>builder()
+                    .content(List.of())
+                    .page(0)
+                    .size(10)
+                    .totalElements(0)
+                    .totalPages(0)
+                    .first(true)
+                    .last(true)
+                    .build();
+
+            when(dishHandler.getDishesByRestaurant(eq(RESTAURANT_ID), eq(null), eq(0), eq(10)))
+                    .thenReturn(response);
+
+            // Act & Assert
+            mockMvc.perform(get(BASE_URL + "/" + RESTAURANT_ID + "/dishes"))
+                    .andExpect(status().isOk());
+
+            verify(dishHandler).getDishesByRestaurant(eq(RESTAURANT_ID), eq(null), eq(0), eq(10));
+        }
+    }
+
+    @Nested
+    @DisplayName("Get Dishes By Restaurant - Error Cases")
+    class GetDishesByRestaurantErrorCases {
+
+        private static final Long RESTAURANT_ID = 999L;
+
+        @Test
+        @DisplayName("Should return 404 when restaurant does not exist")
+        void shouldReturn404WhenRestaurantDoesNotExist() throws Exception {
+            // Arrange
+            when(dishHandler.getDishesByRestaurant(eq(RESTAURANT_ID), eq(null), eq(0), eq(10)))
+                    .thenThrow(new RestaurantNotFoundException(RESTAURANT_ID));
+
+            // Act & Assert
+            mockMvc.perform(get(BASE_URL + "/" + RESTAURANT_ID + "/dishes")
+                            .param("page", "0")
+                            .param("size", "10"))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath(MESSAGE_JSON_PATH).value("Restaurant not found with id: " + RESTAURANT_ID));
         }
     }
 }
