@@ -565,4 +565,162 @@ class OrderUseCaseTest {
         dish.setActive(true);
         return dish;
     }
+
+    @Nested
+    @DisplayName("Assign Order To Employee")
+    class AssignOrderToEmployeeTests {
+
+        private static final Long ORDER_ID = 200L;
+
+        @Test
+        @DisplayName("Should assign order to employee successfully when order is PENDING")
+        void shouldAssignOrderSuccessfullyWhenPending() {
+            Order pendingOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.PENDING);
+            Order expectedAssignedOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.IN_PREPARATION);
+            expectedAssignedOrder.setEmployeeId(EMPLOYEE_ID);
+
+            when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
+                    .thenReturn(Optional.of(RESTAURANT_ID));
+            when(orderPersistencePort.findById(ORDER_ID))
+                    .thenReturn(Optional.of(pendingOrder));
+            when(orderPersistencePort.saveOrder(any(Order.class)))
+                    .thenReturn(expectedAssignedOrder);
+
+            Order result = orderUseCase.assignOrderToEmployee(ORDER_ID, EMPLOYEE_ID);
+
+            assertThat(result).isNotNull();
+            assertThat(result.getId()).isEqualTo(ORDER_ID);
+            assertThat(result.getEmployeeId()).isEqualTo(EMPLOYEE_ID);
+            assertThat(result.getStatus()).isEqualTo(OrderStatus.IN_PREPARATION);
+
+            verify(employeeRestaurantPort).getRestaurantIdByEmployeeId(EMPLOYEE_ID);
+            verify(orderPersistencePort).findById(ORDER_ID);
+            verify(orderPersistencePort).saveOrder(any(Order.class));
+        }
+
+        @Test
+        @DisplayName("Should throw OrderNotFoundException when order does not exist")
+        void shouldThrowOrderNotFoundExceptionWhenOrderDoesNotExist() {
+            when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
+                    .thenReturn(Optional.of(RESTAURANT_ID));
+            when(orderPersistencePort.findById(ORDER_ID))
+                    .thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> orderUseCase.assignOrderToEmployee(ORDER_ID, EMPLOYEE_ID))
+                    .isInstanceOf(com.pragma.plazoleta.domain.exception.OrderNotFoundException.class)
+                    .hasMessageContaining(ORDER_ID.toString());
+
+            verify(orderPersistencePort, never()).saveOrder(any());
+        }
+
+        @Test
+        @DisplayName("Should throw InvalidOrderStatusException when order is not PENDING")
+        void shouldThrowInvalidOrderStatusExceptionWhenOrderIsNotPending() {
+            Order inPreparationOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.IN_PREPARATION);
+
+            when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
+                    .thenReturn(Optional.of(RESTAURANT_ID));
+            when(orderPersistencePort.findById(ORDER_ID))
+                    .thenReturn(Optional.of(inPreparationOrder));
+
+            assertThatThrownBy(() -> orderUseCase.assignOrderToEmployee(ORDER_ID, EMPLOYEE_ID))
+                    .isInstanceOf(com.pragma.plazoleta.domain.exception.InvalidOrderStatusException.class)
+                    .hasMessageContaining("PENDING")
+                    .hasMessageContaining("IN_PREPARATION");
+
+            verify(orderPersistencePort, never()).saveOrder(any());
+        }
+
+        @Test
+        @DisplayName("Should throw OrderNotFromEmployeeRestaurantException when order does not belong to employee's restaurant")
+        void shouldThrowOrderNotFromEmployeeRestaurantException() {
+            Long differentRestaurantId = 999L;
+            Order orderFromDifferentRestaurant = createOrderWithStatus(ORDER_ID, CLIENT_ID, differentRestaurantId, OrderStatus.PENDING);
+
+            when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
+                    .thenReturn(Optional.of(RESTAURANT_ID));
+            when(orderPersistencePort.findById(ORDER_ID))
+                    .thenReturn(Optional.of(orderFromDifferentRestaurant));
+
+            assertThatThrownBy(() -> orderUseCase.assignOrderToEmployee(ORDER_ID, EMPLOYEE_ID))
+                    .isInstanceOf(com.pragma.plazoleta.domain.exception.OrderNotFromEmployeeRestaurantException.class)
+                    .hasMessageContaining(ORDER_ID.toString());
+
+            verify(orderPersistencePort, never()).saveOrder(any());
+        }
+
+        @Test
+        @DisplayName("Should throw EmployeeNotAssociatedWithRestaurantException when employee has no restaurant")
+        void shouldThrowEmployeeNotAssociatedWithRestaurantException() {
+            when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
+                    .thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> orderUseCase.assignOrderToEmployee(ORDER_ID, EMPLOYEE_ID))
+                    .isInstanceOf(EmployeeNotAssociatedWithRestaurantException.class)
+                    .hasMessageContaining(EMPLOYEE_ID.toString());
+
+            verify(orderPersistencePort, never()).findById(any());
+            verify(orderPersistencePort, never()).saveOrder(any());
+        }
+
+        @Test
+        @DisplayName("Should throw InvalidOrderStatusException for READY status")
+        void shouldThrowInvalidOrderStatusExceptionForReadyStatus() {
+            Order readyOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.READY);
+
+            when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
+                    .thenReturn(Optional.of(RESTAURANT_ID));
+            when(orderPersistencePort.findById(ORDER_ID))
+                    .thenReturn(Optional.of(readyOrder));
+
+            assertThatThrownBy(() -> orderUseCase.assignOrderToEmployee(ORDER_ID, EMPLOYEE_ID))
+                    .isInstanceOf(com.pragma.plazoleta.domain.exception.InvalidOrderStatusException.class);
+
+            verify(orderPersistencePort, never()).saveOrder(any());
+        }
+
+        @Test
+        @DisplayName("Should throw InvalidOrderStatusException for DELIVERED status")
+        void shouldThrowInvalidOrderStatusExceptionForDeliveredStatus() {
+            Order deliveredOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.DELIVERED);
+
+            when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
+                    .thenReturn(Optional.of(RESTAURANT_ID));
+            when(orderPersistencePort.findById(ORDER_ID))
+                    .thenReturn(Optional.of(deliveredOrder));
+
+            assertThatThrownBy(() -> orderUseCase.assignOrderToEmployee(ORDER_ID, EMPLOYEE_ID))
+                    .isInstanceOf(com.pragma.plazoleta.domain.exception.InvalidOrderStatusException.class);
+
+            verify(orderPersistencePort, never()).saveOrder(any());
+        }
+
+        @Test
+        @DisplayName("Should throw InvalidOrderStatusException for CANCELLED status")
+        void shouldThrowInvalidOrderStatusExceptionForCancelledStatus() {
+            Order cancelledOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.CANCELLED);
+
+            when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
+                    .thenReturn(Optional.of(RESTAURANT_ID));
+            when(orderPersistencePort.findById(ORDER_ID))
+                    .thenReturn(Optional.of(cancelledOrder));
+
+            assertThatThrownBy(() -> orderUseCase.assignOrderToEmployee(ORDER_ID, EMPLOYEE_ID))
+                    .isInstanceOf(com.pragma.plazoleta.domain.exception.InvalidOrderStatusException.class);
+
+            verify(orderPersistencePort, never()).saveOrder(any());
+        }
+    }
+
+    private Order createOrderWithStatus(Long orderId, Long clientId, Long restaurantId, OrderStatus status) {
+        Order order = new Order();
+        order.setId(orderId);
+        order.setClientId(clientId);
+        order.setRestaurantId(restaurantId);
+        order.setStatus(status);
+        order.setCreatedAt(LocalDateTime.now());
+        order.setUpdatedAt(LocalDateTime.now());
+        order.setItems(new ArrayList<>());
+        return order;
+    }
 }

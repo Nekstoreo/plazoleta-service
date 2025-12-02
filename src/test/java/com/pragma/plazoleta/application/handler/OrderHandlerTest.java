@@ -1,5 +1,6 @@
 package com.pragma.plazoleta.application.handler;
 
+import com.pragma.plazoleta.application.dto.request.AssignOrderRequestDto;
 import com.pragma.plazoleta.application.dto.request.CreateOrderRequestDto;
 import com.pragma.plazoleta.application.dto.request.OrderItemRequestDto;
 import com.pragma.plazoleta.application.dto.response.OrderItemResponseDto;
@@ -340,5 +341,182 @@ class OrderHandlerTest {
             assertThat(item.getDishName()).isEqualTo(DISH_NAME);
             assertThat(item.getDishPrice()).isEqualTo(DISH_PRICE);
         }
+
+        @Test
+        @DisplayName("Should include all order fields in response")
+        void shouldIncludeAllOrderFieldsInResponse() {
+            int page = 0;
+            int size = 10;
+            String status = "PENDING";
+
+            order.setEmployeeId(EMPLOYEE_ID);
+            order.setSecurityPin("123456");
+
+            PagedResult<Order> pagedResult = PagedResult.of(
+                    List.of(order),
+                    page,
+                    size,
+                    1L,
+                    1
+            );
+
+            OrderItemResponseDto itemResponseDto = OrderItemResponseDto.builder()
+                    .id(1L)
+                    .dishId(DISH_ID)
+                    .quantity(2)
+                    .build();
+
+            OrderResponseDto responseDto = OrderResponseDto.builder()
+                    .id(order.getId())
+                    .clientId(order.getClientId())
+                    .restaurantId(order.getRestaurantId())
+                    .employeeId(order.getEmployeeId())
+                    .status(order.getStatus().name())
+                    .createdAt(order.getCreatedAt())
+                    .updatedAt(order.getUpdatedAt())
+                    .securityPin(order.getSecurityPin())
+                    .build();
+
+            when(orderServicePort.getOrdersByRestaurantAndStatus(eq(EMPLOYEE_ID), eq(OrderStatus.PENDING), eq(page), eq(size)))
+                    .thenReturn(pagedResult);
+            when(orderDtoMapper.toOrderResponseDto(order)).thenReturn(responseDto);
+            when(restaurantPersistencePort.findById(RESTAURANT_ID)).thenReturn(Optional.of(restaurant));
+            when(orderDtoMapper.toOrderItemResponseDto(any(OrderItem.class))).thenReturn(itemResponseDto);
+            when(dishPersistencePort.findById(DISH_ID)).thenReturn(Optional.of(dish));
+
+            PagedResponse<OrderResponseDto> result = orderHandler.getOrdersByStatus(EMPLOYEE_ID, status, page, size);
+
+            OrderResponseDto returnedOrder = result.getContent().get(0);
+            assertThat(returnedOrder.getId()).isEqualTo(order.getId());
+            assertThat(returnedOrder.getClientId()).isEqualTo(order.getClientId());
+            assertThat(returnedOrder.getRestaurantId()).isEqualTo(order.getRestaurantId());
+            assertThat(returnedOrder.getEmployeeId()).isEqualTo(order.getEmployeeId());
+            assertThat(returnedOrder.getStatus()).isEqualTo(order.getStatus().name());
+            assertThat(returnedOrder.getCreatedAt()).isEqualTo(order.getCreatedAt());
+            assertThat(returnedOrder.getUpdatedAt()).isEqualTo(order.getUpdatedAt());
+            assertThat(returnedOrder.getSecurityPin()).isEqualTo(order.getSecurityPin());
+        }
+
+        @Test
+        @DisplayName("Should handle pagination metadata correctly")
+        void shouldHandlePaginationMetadataCorrectly() {
+            int page = 1;
+            int size = 5;
+            String status = "IN_PREPARATION";
+
+            PagedResult<Order> pagedResult = PagedResult.of(
+                    List.of(order),
+                    page,
+                    size,
+                    25L,
+                    5
+            );
+
+            OrderItemResponseDto itemResponseDto = OrderItemResponseDto.builder()
+                    .id(1L)
+                    .dishId(DISH_ID)
+                    .quantity(2)
+                    .build();
+
+            when(orderServicePort.getOrdersByRestaurantAndStatus(eq(EMPLOYEE_ID), eq(OrderStatus.IN_PREPARATION), eq(page), eq(size)))
+                    .thenReturn(pagedResult);
+            when(orderDtoMapper.toOrderResponseDto(order)).thenReturn(orderResponseDto);
+            when(restaurantPersistencePort.findById(RESTAURANT_ID)).thenReturn(Optional.of(restaurant));
+            when(orderDtoMapper.toOrderItemResponseDto(any(OrderItem.class))).thenReturn(itemResponseDto);
+            when(dishPersistencePort.findById(DISH_ID)).thenReturn(Optional.of(dish));
+
+            PagedResponse<OrderResponseDto> result = orderHandler.getOrdersByStatus(EMPLOYEE_ID, status, page, size);
+
+            assertThat(result.getPage()).isEqualTo(page);
+            assertThat(result.getSize()).isEqualTo(size);
+            assertThat(result.getTotalElements()).isEqualTo(25L);
+            assertThat(result.getTotalPages()).isEqualTo(5);
+            assertThat(result.isFirst()).isFalse();
+            assertThat(result.isLast()).isFalse();
+        }
     }
-}
+
+    @Nested
+    @DisplayName("Assign Order To Employee")
+    class AssignOrderToEmployeeTests {
+
+        private static final Long ORDER_ID = 200L;
+
+        @Test
+        @DisplayName("Should assign order to employee successfully")
+        void shouldAssignOrderToEmployeeSuccessfully() {
+            AssignOrderRequestDto request = new AssignOrderRequestDto(ORDER_ID);
+            
+            Order assignedOrder = new Order();
+            assignedOrder.setId(ORDER_ID);
+            assignedOrder.setClientId(CLIENT_ID);
+            assignedOrder.setRestaurantId(RESTAURANT_ID);
+            assignedOrder.setEmployeeId(EMPLOYEE_ID);
+            assignedOrder.setStatus(OrderStatus.IN_PREPARATION);
+            assignedOrder.setCreatedAt(LocalDateTime.now());
+            assignedOrder.setUpdatedAt(LocalDateTime.now());
+            OrderItem item = new OrderItem();
+            item.setDishId(DISH_ID);
+            item.setQuantity(2);
+            assignedOrder.setItems(Arrays.asList(item));
+
+            when(orderServicePort.assignOrderToEmployee(ORDER_ID, EMPLOYEE_ID))
+                    .thenReturn(assignedOrder);
+            when(restaurantPersistencePort.findById(RESTAURANT_ID))
+                    .thenReturn(Optional.of(restaurant));
+            when(dishPersistencePort.findById(DISH_ID))
+                    .thenReturn(Optional.of(dish));
+            when(orderDtoMapper.toOrderResponseDto(assignedOrder))
+                    .thenReturn(orderResponseDto);
+            when(orderDtoMapper.toOrderItemResponseDto(any(OrderItem.class)))
+                    .thenReturn(new OrderItemResponseDto(1L, DISH_ID, DISH_NAME, DISH_PRICE, 2));
+
+            OrderResponseDto result = orderHandler.assignOrderToEmployee(request, EMPLOYEE_ID);
+
+            assertThat(result).isNotNull();
+            verify(orderServicePort).assignOrderToEmployee(ORDER_ID, EMPLOYEE_ID);
+            verify(restaurantPersistencePort).findById(RESTAURANT_ID);
+        }
+
+        @Test
+        @DisplayName("Should throw exception when assigning non-existent order")
+        void shouldThrowExceptionWhenAssigningNonExistentOrder() {
+            AssignOrderRequestDto request = new AssignOrderRequestDto(ORDER_ID);
+
+            when(orderServicePort.assignOrderToEmployee(ORDER_ID, EMPLOYEE_ID))
+                    .thenThrow(new com.pragma.plazoleta.domain.exception.OrderNotFoundException(ORDER_ID));
+
+            assertThatThrownBy(() -> orderHandler.assignOrderToEmployee(request, EMPLOYEE_ID))
+                    .isInstanceOf(com.pragma.plazoleta.domain.exception.OrderNotFoundException.class);
+
+            verify(orderServicePort).assignOrderToEmployee(ORDER_ID, EMPLOYEE_ID);
+        }
+
+        @Test
+        @DisplayName("Should throw exception when order status is not PENDING")
+        void shouldThrowExceptionWhenOrderStatusIsNotPending() {
+            AssignOrderRequestDto request = new AssignOrderRequestDto(ORDER_ID);
+
+            when(orderServicePort.assignOrderToEmployee(ORDER_ID, EMPLOYEE_ID))
+                    .thenThrow(new com.pragma.plazoleta.domain.exception.InvalidOrderStatusException(ORDER_ID, "IN_PREPARATION"));
+
+            assertThatThrownBy(() -> orderHandler.assignOrderToEmployee(request, EMPLOYEE_ID))
+                    .isInstanceOf(com.pragma.plazoleta.domain.exception.InvalidOrderStatusException.class);
+
+            verify(orderServicePort).assignOrderToEmployee(ORDER_ID, EMPLOYEE_ID);
+        }
+
+        @Test
+        @DisplayName("Should throw exception when order does not belong to employee's restaurant")
+        void shouldThrowExceptionWhenOrderDoesNotBelongToRestaurant() {
+            AssignOrderRequestDto request = new AssignOrderRequestDto(ORDER_ID);
+
+            when(orderServicePort.assignOrderToEmployee(ORDER_ID, EMPLOYEE_ID))
+                    .thenThrow(new com.pragma.plazoleta.domain.exception.OrderNotFromEmployeeRestaurantException(ORDER_ID, 999L));
+
+            assertThatThrownBy(() -> orderHandler.assignOrderToEmployee(request, EMPLOYEE_ID))
+                    .isInstanceOf(com.pragma.plazoleta.domain.exception.OrderNotFromEmployeeRestaurantException.class);
+
+            verify(orderServicePort).assignOrderToEmployee(ORDER_ID, EMPLOYEE_ID);
+        }
+    }}
