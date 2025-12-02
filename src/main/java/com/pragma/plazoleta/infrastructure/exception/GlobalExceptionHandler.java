@@ -44,7 +44,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
             OwnerNotFoundException.class,
             RestaurantNotFoundException.class,
-            DishNotFoundException.class
+            DishNotFoundException.class,
+            EmployeeNotAssociatedWithRestaurantException.class
     })
     public ResponseEntity<ErrorResponse> handleNotFoundException(
             RuntimeException ex, HttpServletRequest request) {
@@ -88,6 +89,19 @@ public class GlobalExceptionHandler {
                 request.getRequestURI()
         );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
+            IllegalArgumentException ex, HttpServletRequest request) {
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                BAD_REQUEST,
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
