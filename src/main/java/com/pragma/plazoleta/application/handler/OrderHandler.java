@@ -3,10 +3,13 @@ package com.pragma.plazoleta.application.handler;
 import com.pragma.plazoleta.application.dto.request.CreateOrderRequestDto;
 import com.pragma.plazoleta.application.dto.response.OrderItemResponseDto;
 import com.pragma.plazoleta.application.dto.response.OrderResponseDto;
+import com.pragma.plazoleta.application.dto.response.PagedResponse;
 import com.pragma.plazoleta.application.mapper.OrderDtoMapper;
 import com.pragma.plazoleta.domain.api.IOrderServicePort;
 import com.pragma.plazoleta.domain.model.Order;
 import com.pragma.plazoleta.domain.model.OrderItem;
+import com.pragma.plazoleta.domain.model.OrderStatus;
+import com.pragma.plazoleta.domain.model.PagedResult;
 import com.pragma.plazoleta.domain.spi.IDishPersistencePort;
 import com.pragma.plazoleta.domain.spi.IRestaurantPersistencePort;
 import org.springframework.stereotype.Service;
@@ -14,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -43,6 +47,29 @@ public class OrderHandler implements IOrderHandler {
         Order createdOrder = orderServicePort.createOrder(order);
 
         return buildOrderResponse(createdOrder);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PagedResponse<OrderResponseDto> getOrdersByStatus(Long employeeId, String status, int page, int size) {
+        OrderStatus orderStatus = OrderStatus.valueOf(status.toUpperCase());
+
+        PagedResult<Order> pagedResult = orderServicePort.getOrdersByRestaurantAndStatus(
+                employeeId, orderStatus, page, size);
+
+        List<OrderResponseDto> orderResponses = pagedResult.getContent().stream()
+                .map(this::buildOrderResponse)
+                .collect(Collectors.toList());
+
+        return PagedResponse.<OrderResponseDto>builder()
+                .content(orderResponses)
+                .page(pagedResult.getPage())
+                .size(pagedResult.getSize())
+                .totalElements(pagedResult.getTotalElements())
+                .totalPages(pagedResult.getTotalPages())
+                .first(pagedResult.isFirst())
+                .last(pagedResult.isLast())
+                .build();
     }
 
     private OrderResponseDto buildOrderResponse(Order order) {
