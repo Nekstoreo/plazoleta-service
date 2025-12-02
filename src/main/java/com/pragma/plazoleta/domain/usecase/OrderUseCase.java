@@ -6,13 +6,16 @@ import com.pragma.plazoleta.domain.exception.DishNotActiveException;
 import com.pragma.plazoleta.domain.exception.DishNotFoundException;
 import com.pragma.plazoleta.domain.exception.DishNotFromRestaurantException;
 import com.pragma.plazoleta.domain.exception.EmptyOrderException;
+import com.pragma.plazoleta.domain.exception.EmployeeNotAssociatedWithRestaurantException;
 import com.pragma.plazoleta.domain.exception.InvalidQuantityException;
 import com.pragma.plazoleta.domain.exception.RestaurantNotFoundException;
 import com.pragma.plazoleta.domain.model.Dish;
 import com.pragma.plazoleta.domain.model.Order;
 import com.pragma.plazoleta.domain.model.OrderItem;
 import com.pragma.plazoleta.domain.model.OrderStatus;
+import com.pragma.plazoleta.domain.model.PagedResult;
 import com.pragma.plazoleta.domain.spi.IDishPersistencePort;
+import com.pragma.plazoleta.domain.spi.IEmployeeRestaurantPort;
 import com.pragma.plazoleta.domain.spi.IOrderPersistencePort;
 import com.pragma.plazoleta.domain.spi.IRestaurantPersistencePort;
 
@@ -24,13 +27,16 @@ public class OrderUseCase implements IOrderServicePort {
     private final IOrderPersistencePort orderPersistencePort;
     private final IRestaurantPersistencePort restaurantPersistencePort;
     private final IDishPersistencePort dishPersistencePort;
+    private final IEmployeeRestaurantPort employeeRestaurantPort;
 
     public OrderUseCase(IOrderPersistencePort orderPersistencePort,
                         IRestaurantPersistencePort restaurantPersistencePort,
-                        IDishPersistencePort dishPersistencePort) {
+                        IDishPersistencePort dishPersistencePort,
+                        IEmployeeRestaurantPort employeeRestaurantPort) {
         this.orderPersistencePort = orderPersistencePort;
         this.restaurantPersistencePort = restaurantPersistencePort;
         this.dishPersistencePort = dishPersistencePort;
+        this.employeeRestaurantPort = employeeRestaurantPort;
     }
 
     @Override
@@ -45,6 +51,17 @@ public class OrderUseCase implements IOrderServicePort {
         order.setUpdatedAt(LocalDateTime.now());
 
         return orderPersistencePort.saveOrder(order);
+    }
+
+    @Override
+    public PagedResult<Order> getOrdersByRestaurantAndStatus(Long employeeId, OrderStatus status, int page, int size) {
+        Long restaurantId = getEmployeeRestaurantId(employeeId);
+        return orderPersistencePort.findByRestaurantIdAndStatusPaginated(restaurantId, status, page, size);
+    }
+
+    private Long getEmployeeRestaurantId(Long employeeId) {
+        return employeeRestaurantPort.getRestaurantIdByEmployeeId(employeeId)
+                .orElseThrow(() -> new EmployeeNotAssociatedWithRestaurantException(employeeId));
     }
 
     private void validateOrderNotEmpty(List<OrderItem> items) {
