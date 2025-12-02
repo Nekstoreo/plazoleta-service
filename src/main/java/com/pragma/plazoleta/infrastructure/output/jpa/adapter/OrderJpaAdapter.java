@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -97,4 +98,12 @@ public class OrderJpaAdapter implements IOrderPersistencePort {
                 orderPage.getTotalPages()
         );
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Order> findById(Long orderId) {
+        return orderRepository.findById(orderId)
+                .map(orderEntityMapper::toDomain);
+    }
 }
+
