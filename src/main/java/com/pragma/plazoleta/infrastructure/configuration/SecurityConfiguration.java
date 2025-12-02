@@ -37,6 +37,8 @@ public class SecurityConfiguration {
                         ).permitAll()
                         // Restaurants - only ADMIN can create
                         .requestMatchers(HttpMethod.POST, "/api/v1/restaurants").hasRole("ADMIN")
+                        // Restaurants - any authenticated user can list
+                        .requestMatchers(HttpMethod.GET, "/api/v1/restaurants").authenticated()
                         // Dishes - only OWNER can create/update
                         .requestMatchers(HttpMethod.POST, "/api/v1/dishes").hasRole("OWNER")
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/dishes/**").hasRole("OWNER")
