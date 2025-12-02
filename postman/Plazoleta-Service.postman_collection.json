@@ -116,6 +116,126 @@
                         "description": "Lists all restaurants ordered alphabetically by name with custom pagination. Returns only name and logoUrl for each restaurant."
                     },
                     "response": []
+                },
+                {
+                    "name": "List Restaurant Dishes - All Categories",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{clientToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/restaurants/1/dishes",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "restaurants",
+                                "1",
+                                "dishes"
+                            ]
+                        },
+                        "description": "Lists all active dishes from a specific restaurant. Uses default pagination (page=0, size=10). Returns dish name, price, description, imageUrl and category."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List Restaurant Dishes - By Category",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{clientToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/restaurants/1/dishes?category=Hamburguesas",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "restaurants",
+                                "1",
+                                "dishes"
+                            ],
+                            "query": [
+                                {
+                                    "key": "category",
+                                    "value": "Hamburguesas",
+                                    "description": "Filter dishes by category name"
+                                }
+                            ]
+                        },
+                        "description": "Lists active dishes from a specific restaurant filtered by category. Uses default pagination (page=0, size=10)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List Restaurant Dishes - Custom Pagination",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{clientToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/restaurants/1/dishes?page=0&size=5&category=Hamburguesas",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "restaurants",
+                                "1",
+                                "dishes"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0",
+                                    "description": "Page number (0-based)"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "5",
+                                    "description": "Number of elements per page"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "Hamburguesas",
+                                    "description": "Filter dishes by category name (optional)"
+                                }
+                            ]
+                        },
+                        "description": "Lists active dishes from a specific restaurant with custom pagination and optional category filter."
+                    },
+                    "response": []
                 }
             ]
         },
