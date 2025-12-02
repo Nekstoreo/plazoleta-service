@@ -1,9 +1,11 @@
 package com.pragma.plazoleta.infrastructure.input.rest.controller;
 
 import com.pragma.plazoleta.application.dto.request.CreateRestaurantRequest;
+import com.pragma.plazoleta.application.dto.response.DishMenuItemResponseDto;
 import com.pragma.plazoleta.application.dto.response.PagedResponse;
 import com.pragma.plazoleta.application.dto.response.RestaurantListItemResponse;
 import com.pragma.plazoleta.application.dto.response.RestaurantResponse;
+import com.pragma.plazoleta.application.handler.IDishHandler;
 import com.pragma.plazoleta.application.handler.IRestaurantHandler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -18,6 +20,7 @@ import jakarta.validation.constraints.Min;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,9 +34,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class RestaurantRestController {
 
     private final IRestaurantHandler restaurantHandler;
+    private final IDishHandler dishHandler;
 
-    public RestaurantRestController(IRestaurantHandler restaurantHandler) {
+    public RestaurantRestController(IRestaurantHandler restaurantHandler, IDishHandler dishHandler) {
         this.restaurantHandler = restaurantHandler;
+        this.dishHandler = dishHandler;
     }
 
     @Operation(summary = "Create restaurant",
@@ -85,6 +90,36 @@ public class RestaurantRestController {
             @Parameter(description = "Number of elements per page", example = "10")
             @RequestParam(defaultValue = "10") @Min(1) int size) {
         PagedResponse<RestaurantListItemResponse> response = restaurantHandler.getAllRestaurants(page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "List dishes by restaurant",
+            description = "Retrieves a paginated list of active dishes from a specific restaurant. " +
+                    "Results can be filtered by category.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Dishes retrieved successfully",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = PagedResponse.class))),
+            @ApiResponse(responseCode = "401",
+                    description = "Not authenticated",
+                    content = @Content),
+            @ApiResponse(responseCode = "404",
+                    description = "Restaurant not found",
+                    content = @Content)
+    })
+    @GetMapping("/{restaurantId}/dishes")
+    public ResponseEntity<PagedResponse<DishMenuItemResponseDto>> getDishesByRestaurant(
+            @Parameter(description = "ID of the restaurant", required = true)
+            @PathVariable Long restaurantId,
+            @Parameter(description = "Category to filter dishes (optional)", example = "MAIN_COURSE")
+            @RequestParam(required = false) String category,
+            @Parameter(description = "Page number (0-based)", example = "0")
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @Parameter(description = "Number of elements per page", example = "10")
+            @RequestParam(defaultValue = "10") @Min(1) int size) {
+        PagedResponse<DishMenuItemResponseDto> response = dishHandler.getDishesByRestaurant(
+                restaurantId, category, page, size);
         return ResponseEntity.ok(response);
     }
 }
