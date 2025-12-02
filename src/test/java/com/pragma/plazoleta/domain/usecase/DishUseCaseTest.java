@@ -6,6 +6,7 @@ import com.pragma.plazoleta.domain.exception.InvalidPriceException;
 import com.pragma.plazoleta.domain.exception.RestaurantNotFoundException;
 import com.pragma.plazoleta.domain.exception.UserNotRestaurantOwnerException;
 import com.pragma.plazoleta.domain.model.Dish;
+import com.pragma.plazoleta.domain.model.PagedResult;
 import com.pragma.plazoleta.domain.model.Restaurant;
 import com.pragma.plazoleta.domain.spi.IDishPersistencePort;
 import com.pragma.plazoleta.domain.spi.IRestaurantPersistencePort;
@@ -20,6 +21,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -378,5 +381,121 @@ class DishUseCaseTest {
             verify(restaurantPersistencePort, never()).findById(any());
             verify(dishPersistencePort, never()).saveDish(any());
         }
+    }
+
+    @Nested
+    @DisplayName("Get Dishes By Restaurant - Happy Path")
+    class GetDishesByRestaurantHappyPath {
+
+        @Test
+        @DisplayName("Should return paginated dishes without category filter")
+        void shouldReturnPaginatedDishesWithoutCategoryFilter() {
+            Dish dish1 = createDish(1L, "Hamburguesa", "Hamburguesas");
+            Dish dish2 = createDish(2L, "Pizza", "Pizzas");
+            List<Dish> dishes = Arrays.asList(dish1, dish2);
+            PagedResult<Dish> pagedResult = PagedResult.of(dishes, 0, 10, 2, 1);
+
+            when(restaurantPersistencePort.findById(RESTAURANT_ID)).thenReturn(Optional.of(restaurant));
+            when(dishPersistencePort.findActiveDishesByRestaurantId(RESTAURANT_ID, 0, 10))
+                    .thenReturn(pagedResult);
+
+            PagedResult<Dish> result = dishUseCase.getDishesByRestaurant(RESTAURANT_ID, null, 0, 10);
+
+            assertThat(result).isNotNull();
+            assertThat(result.getContent()).hasSize(2);
+            assertThat(result.getTotalElements()).isEqualTo(2);
+
+            verify(restaurantPersistencePort).findById(RESTAURANT_ID);
+            verify(dishPersistencePort).findActiveDishesByRestaurantId(RESTAURANT_ID, 0, 10);
+            verify(dishPersistencePort, never()).findActiveDishesByRestaurantIdAndCategory(any(), any(), anyInt(), anyInt());
+        }
+
+        @Test
+        @DisplayName("Should return paginated dishes with category filter")
+        void shouldReturnPaginatedDishesWithCategoryFilter() {
+            Dish dish1 = createDish(1L, "Hamburguesa Clásica", "Hamburguesas");
+            Dish dish2 = createDish(2L, "Hamburguesa BBQ", "Hamburguesas");
+            List<Dish> dishes = Arrays.asList(dish1, dish2);
+            PagedResult<Dish> pagedResult = PagedResult.of(dishes, 0, 10, 2, 1);
+
+            when(restaurantPersistencePort.findById(RESTAURANT_ID)).thenReturn(Optional.of(restaurant));
+            when(dishPersistencePort.findActiveDishesByRestaurantIdAndCategory(RESTAURANT_ID, "Hamburguesas", 0, 10))
+                    .thenReturn(pagedResult);
+
+            PagedResult<Dish> result = dishUseCase.getDishesByRestaurant(RESTAURANT_ID, "Hamburguesas", 0, 10);
+
+            assertThat(result).isNotNull();
+            assertThat(result.getContent()).hasSize(2);
+            assertThat(result.getContent()).allMatch(dish -> "Hamburguesas".equals(dish.getCategory()));
+
+            verify(restaurantPersistencePort).findById(RESTAURANT_ID);
+            verify(dishPersistencePort).findActiveDishesByRestaurantIdAndCategory(RESTAURANT_ID, "Hamburguesas", 0, 10);
+            verify(dishPersistencePort, never()).findActiveDishesByRestaurantId(any(), anyInt(), anyInt());
+        }
+
+        @Test
+        @DisplayName("Should treat blank category as no filter")
+        void shouldTreatBlankCategoryAsNoFilter() {
+            List<Dish> dishes = Arrays.asList(createDish(1L, "Hamburguesa", "Hamburguesas"));
+            PagedResult<Dish> pagedResult = PagedResult.of(dishes, 0, 10, 1, 1);
+
+            when(restaurantPersistencePort.findById(RESTAURANT_ID)).thenReturn(Optional.of(restaurant));
+            when(dishPersistencePort.findActiveDishesByRestaurantId(RESTAURANT_ID, 0, 10))
+                    .thenReturn(pagedResult);
+
+            PagedResult<Dish> result = dishUseCase.getDishesByRestaurant(RESTAURANT_ID, "   ", 0, 10);
+
+            assertThat(result).isNotNull();
+            verify(dishPersistencePort).findActiveDishesByRestaurantId(RESTAURANT_ID, 0, 10);
+            verify(dishPersistencePort, never()).findActiveDishesByRestaurantIdAndCategory(any(), any(), anyInt(), anyInt());
+        }
+
+        @Test
+        @DisplayName("Should return empty result when no dishes found")
+        void shouldReturnEmptyResultWhenNoDishesFound() {
+            PagedResult<Dish> emptyResult = PagedResult.of(List.of(), 0, 10, 0, 0);
+
+            when(restaurantPersistencePort.findById(RESTAURANT_ID)).thenReturn(Optional.of(restaurant));
+            when(dishPersistencePort.findActiveDishesByRestaurantId(RESTAURANT_ID, 0, 10))
+                    .thenReturn(emptyResult);
+
+            PagedResult<Dish> result = dishUseCase.getDishesByRestaurant(RESTAURANT_ID, null, 0, 10);
+
+            assertThat(result).isNotNull();
+            assertThat(result.getContent()).isEmpty();
+            assertThat(result.getTotalElements()).isZero();
+        }
+    }
+
+    @Nested
+    @DisplayName("Get Dishes By Restaurant - Validations")
+    class GetDishesByRestaurantValidations {
+
+        @Test
+        @DisplayName("Should throw RestaurantNotFoundException when restaurant does not exist")
+        void shouldThrowWhenRestaurantNotFound() {
+            when(restaurantPersistencePort.findById(RESTAURANT_ID)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> dishUseCase.getDishesByRestaurant(RESTAURANT_ID, null, 0, 10))
+                    .isInstanceOf(RestaurantNotFoundException.class)
+                    .hasMessageContaining(RESTAURANT_ID.toString());
+
+            verify(dishPersistencePort, never()).findActiveDishesByRestaurantId(any(), anyInt(), anyInt());
+            verify(dishPersistencePort, never()).findActiveDishesByRestaurantIdAndCategory(any(), any(), anyInt(), anyInt());
+        }
+    }
+
+    private Dish createDish(Long id, String name, String category) {
+        Dish dish = new Dish(
+                name,
+                25000,
+                "Descripción del plato",
+                "https://example.com/image.jpg",
+                category,
+                RESTAURANT_ID
+        );
+        dish.setId(id);
+        dish.setActive(true);
+        return dish;
     }
 }
