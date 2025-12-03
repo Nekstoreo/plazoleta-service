@@ -31,4 +31,15 @@ public class ClientInfoFeignAdapter implements IClientInfoPort {
             return Optional.empty();
         }
     }
+
+    @Override
+    public Optional<String> getClientEmailById(Long clientId) {
+        try {
+            return userFeignClient.getUserById(clientId)
+                    .map(UserDto::getEmail);
+        } catch (FeignException e) {
+            logger.error("Error fetching client email for id {}: {}", clientId, e.getMessage(), e);
+            return Optional.empty();
+        }
+    }
 }

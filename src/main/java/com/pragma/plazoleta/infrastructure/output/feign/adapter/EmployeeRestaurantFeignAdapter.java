@@ -26,4 +26,14 @@ public class EmployeeRestaurantFeignAdapter implements IEmployeeRestaurantPort {
             return Optional.empty();
         }
     }
+
+    @Override
+    public Optional<String> getEmployeeEmailById(Long employeeId) {
+        try {
+            return userFeignClient.getUserById(employeeId)
+                    .map(UserDto::getEmail);
+        } catch (FeignException e) {
+            return Optional.empty();
+        }
+    }
 }
