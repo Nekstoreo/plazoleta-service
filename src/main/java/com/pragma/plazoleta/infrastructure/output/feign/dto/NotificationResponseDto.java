@@ -9,13 +9,9 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserDto {
+public class NotificationResponseDto {
 
-    private Long id;
-    private String firstName;
-    private String lastName;
-    private String phone;
-    private String email;
-    private String role;
-    private Long restaurantId;
+    private boolean success;
+    private String messageId;
+    private String message;
 }
