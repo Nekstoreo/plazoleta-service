@@ -2,6 +2,7 @@ package com.pragma.plazoleta.domain.usecase;
 
 import com.pragma.plazoleta.domain.api.IOrderServicePort;
 import com.pragma.plazoleta.domain.exception.ClientHasActiveOrderException;
+import com.pragma.plazoleta.domain.exception.ClientPhoneNotFoundException;
 import com.pragma.plazoleta.domain.exception.DishNotActiveException;
 import com.pragma.plazoleta.domain.exception.DishNotFoundException;
 import com.pragma.plazoleta.domain.exception.DishNotFromRestaurantException;
@@ -11,35 +12,50 @@ import com.pragma.plazoleta.domain.exception.InvalidOrderStatusException;
 import com.pragma.plazoleta.domain.exception.InvalidQuantityException;
 import com.pragma.plazoleta.domain.exception.OrderNotFoundException;
 import com.pragma.plazoleta.domain.exception.OrderNotFromEmployeeRestaurantException;
+import com.pragma.plazoleta.domain.exception.OrderNotInPreparationException;
 import com.pragma.plazoleta.domain.exception.RestaurantNotFoundException;
 import com.pragma.plazoleta.domain.model.Dish;
 import com.pragma.plazoleta.domain.model.Order;
 import com.pragma.plazoleta.domain.model.OrderItem;
 import com.pragma.plazoleta.domain.model.OrderStatus;
 import com.pragma.plazoleta.domain.model.PagedResult;
+import com.pragma.plazoleta.domain.model.Restaurant;
+import com.pragma.plazoleta.domain.spi.IClientInfoPort;
 import com.pragma.plazoleta.domain.spi.IDishPersistencePort;
 import com.pragma.plazoleta.domain.spi.IEmployeeRestaurantPort;
+import com.pragma.plazoleta.domain.spi.INotificationPort;
 import com.pragma.plazoleta.domain.spi.IOrderPersistencePort;
 import com.pragma.plazoleta.domain.spi.IRestaurantPersistencePort;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
 
 public class OrderUseCase implements IOrderServicePort {
 
+    private static final int PIN_LENGTH = 6;
+    private static final String PIN_CHARACTERS = "0123456789";
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
     private final IOrderPersistencePort orderPersistencePort;
     private final IRestaurantPersistencePort restaurantPersistencePort;
     private final IDishPersistencePort dishPersistencePort;
     private final IEmployeeRestaurantPort employeeRestaurantPort;
+    private final IClientInfoPort clientInfoPort;
+    private final INotificationPort notificationPort;
 
     public OrderUseCase(IOrderPersistencePort orderPersistencePort,
                         IRestaurantPersistencePort restaurantPersistencePort,
                         IDishPersistencePort dishPersistencePort,
-                        IEmployeeRestaurantPort employeeRestaurantPort) {
+                        IEmployeeRestaurantPort employeeRestaurantPort,
+                        IClientInfoPort clientInfoPort,
+                        INotificationPort notificationPort) {
         this.orderPersistencePort = orderPersistencePort;
         this.restaurantPersistencePort = restaurantPersistencePort;
         this.dishPersistencePort = dishPersistencePort;
         this.employeeRestaurantPort = employeeRestaurantPort;
+        this.clientInfoPort = clientInfoPort;
+        this.notificationPort = notificationPort;
     }
 
     @Override
@@ -76,6 +92,59 @@ public class OrderUseCase implements IOrderServicePort {
         order.setUpdatedAt(LocalDateTime.now());
 
         return orderPersistencePort.saveOrder(order);
+    }
+
+    @Override
+    public Order markOrderAsReady(Long orderId, Long employeeId) {
+        Long restaurantId = getEmployeeRestaurantId(employeeId);
+        Order order = orderPersistencePort.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
+
+        validateOrderBelongsToRestaurant(order, restaurantId);
+        validateOrderIsInPreparation(order);
+
+        String securityPin = generateSecurityPin();
+        order.setSecurityPin(securityPin);
+        order.setStatus(OrderStatus.READY);
+        order.setUpdatedAt(LocalDateTime.now());
+
+        Order savedOrder = orderPersistencePort.saveOrder(order);
+
+        sendOrderReadyNotification(savedOrder);
+
+        return savedOrder;
+    }
+
+    private void sendOrderReadyNotification(Order order) {
+        String clientPhone = clientInfoPort.getClientPhoneById(order.getClientId())
+                .orElseThrow(() -> new ClientPhoneNotFoundException(order.getClientId()));
+
+        validatePhoneNumber(clientPhone);
+
+        Restaurant restaurant = restaurantPersistencePort.findById(order.getRestaurantId())
+                .orElseThrow(() -> new RestaurantNotFoundException(order.getRestaurantId()));
+
+        notificationPort.sendOrderReadyNotification(
+                clientPhone,
+                order.getId().toString(),
+                order.getSecurityPin(),
+                restaurant.getName()
+        );
+    }
+
+    private String generateSecurityPin() {
+        StringBuilder pin = new StringBuilder(PIN_LENGTH);
+        for (int i = 0; i < PIN_LENGTH; i++) {
+            int randomIndex = SECURE_RANDOM.nextInt(PIN_CHARACTERS.length());
+            pin.append(PIN_CHARACTERS.charAt(randomIndex));
+        }
+        return pin.toString();
+    }
+
+    private void validateOrderIsInPreparation(Order order) {
+        if (order.getStatus() != OrderStatus.IN_PREPARATION) {
+            throw new OrderNotInPreparationException(order.getId());
+        }
     }
 
     private void validateOrderBelongsToRestaurant(Order order, Long restaurantId) {
@@ -137,4 +206,15 @@ public class OrderUseCase implements IOrderServicePort {
             throw new DishNotActiveException(dishId);
         }
     }
+
+    private void validatePhoneNumber(String phoneNumber) {
+        if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
+            throw new IllegalArgumentException("Phone number cannot be empty");
+        }
+        // E.164 format: +[1-9]{1}[0-9]{1,14}
+        if (!phoneNumber.matches("^\\+[1-9]\\d{1,14}$")) {
+            throw new IllegalArgumentException("Phone number must be in E.164 format (e.g., +573001234567). Received: " + phoneNumber);
+        }
+    }
 }
+
