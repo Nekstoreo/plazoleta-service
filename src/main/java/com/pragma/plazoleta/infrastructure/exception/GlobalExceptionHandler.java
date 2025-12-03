@@ -30,7 +30,8 @@ public class GlobalExceptionHandler {
                         DishNotActiveException.class,
                         InvalidOrderStatusException.class,
                         OrderNotInPreparationException.class,
-                        InvalidSecurityPinException.class
+                        InvalidSecurityPinException.class,
+                        OrderNotCancellableException.class
         })
         public ResponseEntity<ErrorResponse> handleValidationExceptions(
                         RuntimeException ex, HttpServletRequest request) {

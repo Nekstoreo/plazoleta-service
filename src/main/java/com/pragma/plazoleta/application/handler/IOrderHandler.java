@@ -18,5 +18,7 @@ public interface IOrderHandler {
     OrderResponseDto markOrderAsReady(MarkOrderReadyRequestDto request, Long employeeId);
 
     OrderResponseDto deliverOrder(DeliverOrderRequestDto request, Long employeeId);
+
+    void cancelOrder(Long orderId, Long clientId);
 }
 

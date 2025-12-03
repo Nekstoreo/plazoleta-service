@@ -93,6 +93,11 @@ public class OrderHandler implements IOrderHandler {
         return buildOrderResponse(deliveredOrder);
     }
 
+    @Override
+    public void cancelOrder(Long orderId, Long clientId) {
+        orderServicePort.cancelOrder(orderId, clientId);
+    }
+
     private OrderResponseDto buildOrderResponse(Order order) {
         OrderResponseDto response = orderDtoMapper.toOrderResponseDto(order);
 

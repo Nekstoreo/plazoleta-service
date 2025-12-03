@@ -23,6 +23,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -209,6 +210,36 @@ public class OrderRestController {
         Long employeeId = getAuthenticatedUserId();
         OrderResponseDto response = orderHandler.deliverOrder(request, employeeId);
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Cancel an order",
+            description = "Cancels an order. " +
+                    "Only the client who created the order can cancel it. " +
+                    "Only orders in PENDING status can be cancelled.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Order cancelled successfully",
+                    content = @Content),
+            @ApiResponse(responseCode = "400",
+                    description = "Order is not in PENDING status",
+                    content = @Content),
+            @ApiResponse(responseCode = "401",
+                    description = "Not authenticated",
+                    content = @Content),
+            @ApiResponse(responseCode = "403",
+                    description = "Not authorized - requires CLIENT role or user is not the owner",
+                    content = @Content),
+            @ApiResponse(responseCode = "404",
+                    description = "Order not found",
+                    content = @Content)
+    })
+    @PostMapping("/{orderId}/cancel")
+    public ResponseEntity<Void> cancelOrder(
+            @Parameter(description = "ID of the order to cancel", required = true)
+            @PathVariable Long orderId) {
+        Long clientId = getAuthenticatedUserId();
+        orderHandler.cancelOrder(orderId, clientId);
+        return ResponseEntity.ok().build();
     }
 
     private Long getAuthenticatedUserId() {
