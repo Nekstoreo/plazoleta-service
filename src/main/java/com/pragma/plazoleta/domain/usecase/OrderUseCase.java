@@ -1,36 +1,9 @@
 package com.pragma.plazoleta.domain.usecase;
 
 import com.pragma.plazoleta.domain.api.IOrderServicePort;
-import com.pragma.plazoleta.domain.exception.ClientHasActiveOrderException;
-import com.pragma.plazoleta.domain.exception.ClientPhoneNotFoundException;
-import com.pragma.plazoleta.domain.exception.DishNotActiveException;
-import com.pragma.plazoleta.domain.exception.DishNotFoundException;
-import com.pragma.plazoleta.domain.exception.DishNotFromRestaurantException;
-import com.pragma.plazoleta.domain.exception.EmptyOrderException;
-import com.pragma.plazoleta.domain.exception.EmployeeNotAssociatedWithRestaurantException;
-import com.pragma.plazoleta.domain.exception.InvalidOrderStatusException;
-import com.pragma.plazoleta.domain.exception.InvalidQuantityException;
-import com.pragma.plazoleta.domain.exception.InvalidSecurityPinException;
-import com.pragma.plazoleta.domain.exception.OrderNotCancellableException;
-import com.pragma.plazoleta.domain.exception.OrderNotFoundException;
-import com.pragma.plazoleta.domain.exception.UserNotOwnerException;
-import com.pragma.plazoleta.domain.exception.OrderNotFromEmployeeRestaurantException;
-import com.pragma.plazoleta.domain.exception.OrderNotInPreparationException;
-import com.pragma.plazoleta.domain.exception.RestaurantNotFoundException;
-import com.pragma.plazoleta.domain.model.Dish;
-import com.pragma.plazoleta.domain.model.Order;
-import com.pragma.plazoleta.domain.model.OrderItem;
-import com.pragma.plazoleta.domain.model.OrderStatus;
-import com.pragma.plazoleta.domain.model.PagedResult;
-import com.pragma.plazoleta.domain.model.Restaurant;
-import com.pragma.plazoleta.domain.model.Traceability;
-import com.pragma.plazoleta.domain.spi.IClientInfoPort;
-import com.pragma.plazoleta.domain.spi.IDishPersistencePort;
-import com.pragma.plazoleta.domain.spi.IEmployeeRestaurantPort;
-import com.pragma.plazoleta.domain.spi.INotificationPort;
-import com.pragma.plazoleta.domain.spi.IOrderPersistencePort;
-import com.pragma.plazoleta.domain.spi.IRestaurantPersistencePort;
-import com.pragma.plazoleta.domain.spi.ITraceabilityPort;
+import com.pragma.plazoleta.domain.exception.*;
+import com.pragma.plazoleta.domain.model.*;
+import com.pragma.plazoleta.domain.spi.*;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
@@ -186,6 +159,7 @@ public class OrderUseCase implements IOrderServicePort {
         traceability.setPreviousStatus(previousStatus != null ? previousStatus.name() : null);
         traceability.setNewStatus(newStatus.name());
         traceability.setEmployeeId(employeeId);
+        traceability.setRestaurantId(order.getRestaurantId());
         if (employeeId != null) {
             traceability.setEmployeeEmail(employeeRestaurantPort.getEmployeeEmailById(employeeId).orElse(null));
         }
