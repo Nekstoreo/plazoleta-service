@@ -1,628 +1,668 @@
 {
-    "info": {
-        "name": "Plazoleta Service",
-        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  "info": {
+    "name": "Plazoleta Service",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Restaurants",
+      "item": [
+        {
+          "name": "Create Restaurant - Success",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Restaurante El Buen Sabor\",\n  \"nit\": \"900123456\",\n  \"address\": \"Calle 123 #45-67\",\n  \"phone\": \"+573001234567\",\n  \"logoUrl\": \"https://example.com/logo.png\",\n  \"ownerId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/restaurants",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "restaurants"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Restaurants - Default Pagination",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/restaurants",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "restaurants"
+              ]
+            },
+            "description": "Lists all restaurants ordered alphabetically by name. Uses default pagination (page=0, size=10). Returns only name and logoUrl for each restaurant."
+          },
+          "response": []
+        },
+        {
+          "name": "List Restaurants - Custom Pagination",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/restaurants?page=0&size=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "restaurants"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Page number (0-based)"
+                },
+                {
+                  "key": "size",
+                  "value": "5",
+                  "description": "Number of elements per page"
+                }
+              ]
+            },
+            "description": "Lists all restaurants ordered alphabetically by name with custom pagination. Returns only name and logoUrl for each restaurant."
+          },
+          "response": []
+        },
+        {
+          "name": "List Restaurant Dishes - All Categories",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/restaurants/1/dishes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "restaurants",
+                "1",
+                "dishes"
+              ]
+            },
+            "description": "Lists all active dishes from a specific restaurant. Uses default pagination (page=0, size=10). Returns dish name, price, description, imageUrl and category."
+          },
+          "response": []
+        },
+        {
+          "name": "List Restaurant Dishes - By Category",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/restaurants/1/dishes?category=Hamburguesas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "restaurants",
+                "1",
+                "dishes"
+              ],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "Hamburguesas",
+                  "description": "Filter dishes by category name"
+                }
+              ]
+            },
+            "description": "Lists active dishes from a specific restaurant filtered by category. Uses default pagination (page=0, size=10)."
+          },
+          "response": []
+        },
+        {
+          "name": "List Restaurant Dishes - Custom Pagination",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/restaurants/1/dishes?page=0&size=5&category=Hamburguesas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "restaurants",
+                "1",
+                "dishes"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Page number (0-based)"
+                },
+                {
+                  "key": "size",
+                  "value": "5",
+                  "description": "Number of elements per page"
+                },
+                {
+                  "key": "category",
+                  "value": "Hamburguesas",
+                  "description": "Filter dishes by category name (optional)"
+                }
+              ]
+            },
+            "description": "Lists active dishes from a specific restaurant with custom pagination and optional category filter."
+          },
+          "response": []
+        }
+      ]
     },
-    "item": [
+    {
+      "name": "Dishes",
+      "item": [
         {
-            "name": "Restaurants",
-            "item": [
+          "name": "Create Dish - Success",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
                 {
-                    "name": "Create Restaurant - Success",
-                    "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{authToken}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n  \"name\": \"Restaurante El Buen Sabor\",\n  \"nit\": \"900123456\",\n  \"address\": \"Calle 123 #45-67\",\n  \"phone\": \"+573001234567\",\n  \"logoUrl\": \"https://example.com/logo.png\",\n  \"ownerId\": 1\n}"
-                        },
-                        "url": {
-                            "raw": "{{baseUrl}}/api/v1/restaurants",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "v1",
-                                "restaurants"
-                            ]
-                        }
-                    },
-                    "response": []
-                },
-                {
-                    "name": "List Restaurants - Default Pagination",
-                    "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{clientToken}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
-                        "method": "GET",
-                        "header": [],
-                        "url": {
-                            "raw": "{{baseUrl}}/api/v1/restaurants",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "v1",
-                                "restaurants"
-                            ]
-                        },
-                        "description": "Lists all restaurants ordered alphabetically by name. Uses default pagination (page=0, size=10). Returns only name and logoUrl for each restaurant."
-                    },
-                    "response": []
-                },
-                {
-                    "name": "List Restaurants - Custom Pagination",
-                    "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{clientToken}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
-                        "method": "GET",
-                        "header": [],
-                        "url": {
-                            "raw": "{{baseUrl}}/api/v1/restaurants?page=0&size=5",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "v1",
-                                "restaurants"
-                            ],
-                            "query": [
-                                {
-                                    "key": "page",
-                                    "value": "0",
-                                    "description": "Page number (0-based)"
-                                },
-                                {
-                                    "key": "size",
-                                    "value": "5",
-                                    "description": "Number of elements per page"
-                                }
-                            ]
-                        },
-                        "description": "Lists all restaurants ordered alphabetically by name with custom pagination. Returns only name and logoUrl for each restaurant."
-                    },
-                    "response": []
-                },
-                {
-                    "name": "List Restaurant Dishes - All Categories",
-                    "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{clientToken}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
-                        "method": "GET",
-                        "header": [],
-                        "url": {
-                            "raw": "{{baseUrl}}/api/v1/restaurants/1/dishes",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "v1",
-                                "restaurants",
-                                "1",
-                                "dishes"
-                            ]
-                        },
-                        "description": "Lists all active dishes from a specific restaurant. Uses default pagination (page=0, size=10). Returns dish name, price, description, imageUrl and category."
-                    },
-                    "response": []
-                },
-                {
-                    "name": "List Restaurant Dishes - By Category",
-                    "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{clientToken}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
-                        "method": "GET",
-                        "header": [],
-                        "url": {
-                            "raw": "{{baseUrl}}/api/v1/restaurants/1/dishes?category=Hamburguesas",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "v1",
-                                "restaurants",
-                                "1",
-                                "dishes"
-                            ],
-                            "query": [
-                                {
-                                    "key": "category",
-                                    "value": "Hamburguesas",
-                                    "description": "Filter dishes by category name"
-                                }
-                            ]
-                        },
-                        "description": "Lists active dishes from a specific restaurant filtered by category. Uses default pagination (page=0, size=10)."
-                    },
-                    "response": []
-                },
-                {
-                    "name": "List Restaurant Dishes - Custom Pagination",
-                    "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{clientToken}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
-                        "method": "GET",
-                        "header": [],
-                        "url": {
-                            "raw": "{{baseUrl}}/api/v1/restaurants/1/dishes?page=0&size=5&category=Hamburguesas",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "v1",
-                                "restaurants",
-                                "1",
-                                "dishes"
-                            ],
-                            "query": [
-                                {
-                                    "key": "page",
-                                    "value": "0",
-                                    "description": "Page number (0-based)"
-                                },
-                                {
-                                    "key": "size",
-                                    "value": "5",
-                                    "description": "Number of elements per page"
-                                },
-                                {
-                                    "key": "category",
-                                    "value": "Hamburguesas",
-                                    "description": "Filter dishes by category name (optional)"
-                                }
-                            ]
-                        },
-                        "description": "Lists active dishes from a specific restaurant with custom pagination and optional category filter."
-                    },
-                    "response": []
+                  "key": "token",
+                  "value": "{{ownerToken}}",
+                  "type": "string"
                 }
-            ]
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Owner-Id",
+                "value": "1",
+                "description": "ID of the owner creating the dish"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Hamburguesa Clásica\",\n  \"price\": 25000,\n  \"description\": \"Deliciosa hamburguesa con carne 100% res, lechuga, tomate y salsa especial\",\n  \"imageUrl\": \"https://example.com/burger.jpg\",\n  \"category\": \"Hamburguesas\",\n  \"restaurantId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/dishes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "dishes"
+              ]
+            }
+          },
+          "response": []
         },
         {
-            "name": "Dishes",
-            "item": [
+          "name": "Update Dish - Success",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
                 {
-                    "name": "Create Dish - Success",
-                    "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{ownerToken}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "X-Owner-Id",
-                                "value": "1",
-                                "description": "ID of the owner creating the dish"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n  \"name\": \"Hamburguesa Clásica\",\n  \"price\": 25000,\n  \"description\": \"Deliciosa hamburguesa con carne 100% res, lechuga, tomate y salsa especial\",\n  \"imageUrl\": \"https://example.com/burger.jpg\",\n  \"category\": \"Hamburguesas\",\n  \"restaurantId\": 1\n}"
-                        },
-                        "url": {
-                            "raw": "{{baseUrl}}/api/v1/dishes",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "v1",
-                                "dishes"
-                            ]
-                        }
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Update Dish - Success",
-                    "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{ownerToken}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
-                        "method": "PATCH",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "X-Owner-Id",
-                                "value": "1",
-                                "description": "ID of the owner updating the dish"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n  \"price\": 28000,\n  \"description\": \"Hamburguesa premium con carne 100% res, queso cheddar, lechuga fresca, tomate y salsa especial de la casa\"\n}"
-                        },
-                        "url": {
-                            "raw": "{{baseUrl}}/api/v1/dishes/1",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "v1",
-                                "dishes",
-                                "1"
-                            ]
-                        }
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Toggle Dish Active Flag",
-                    "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{ownerToken}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
-                        "method": "PATCH",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n  \"active\": false\n}"
-                        },
-                        "url": {
-                            "raw": "{{baseUrl}}/api/v1/dishes/1/status",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "v1",
-                                "dishes",
-                                "1",
-                                "status"
-                            ]
-                        }
-                    },
-                    "response": []
+                  "key": "token",
+                  "value": "{{ownerToken}}",
+                  "type": "string"
                 }
-            ]
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Owner-Id",
+                "value": "1",
+                "description": "ID of the owner updating the dish"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 28000,\n  \"description\": \"Hamburguesa premium con carne 100% res, queso cheddar, lechuga fresca, tomate y salsa especial de la casa\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/dishes/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "dishes",
+                "1"
+              ]
+            }
+          },
+          "response": []
         },
-      {
-        "name": "Orders",
-        "item": [
-          {
-            "name": "Create Order - Success",
-            "request": {
-              "auth": {
-                "type": "bearer",
-                "bearer": [
-                  {
-                    "key": "token",
-                    "value": "{{clientToken}}",
-                    "type": "string"
-                  }
-                ]
-              },
-              "method": "POST",
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": {
-                "mode": "raw",
-                "raw": "{\n  \"restaurantId\": 1,\n  \"items\": [\n    {\n      \"dishId\": 1,\n      \"quantity\": 2\n    },\n    {\n      \"dishId\": 2,\n      \"quantity\": 1\n    }\n  ]\n}"
-              },
-              "url": {
-                "raw": "{{baseUrl}}/api/v1/orders",
-                "host": [
-                  "{{baseUrl}}"
-                ],
-                "path": [
-                  "api",
-                  "v1",
-                  "orders"
-                ]
-              },
-              "description": "Creates a new order for the authenticated client. The order must contain at least one dish from the specified restaurant. A client can only have one active order at a time."
-            },
-            "response": []
-          },
-          {
-            "name": "Create Order - Single Item",
-            "request": {
-              "auth": {
-                "type": "bearer",
-                "bearer": [
-                  {
-                    "key": "token",
-                    "value": "{{clientToken}}",
-                    "type": "string"
-                  }
-                ]
-              },
-              "method": "POST",
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": {
-                "mode": "raw",
-                "raw": "{\n  \"restaurantId\": 1,\n  \"items\": [\n    {\n      \"dishId\": 1,\n      \"quantity\": 1\n    }\n  ]\n}"
-              },
-              "url": {
-                "raw": "{{baseUrl}}/api/v1/orders",
-                "host": [
-                  "{{baseUrl}}"
-                ],
-                "path": [
-                  "api",
-                  "v1",
-                  "orders"
-                ]
-              },
-              "description": "Creates a new order with a single dish item."
-            },
-            "response": []
-          },
-          {
-            "name": "List Orders By Status - Pending",
-            "request": {
-              "auth": {
-                "type": "bearer",
-                "bearer": [
-                  {
-                    "key": "token",
-                    "value": "{{employeeToken}}",
-                    "type": "string"
-                  }
-                ]
-              },
-              "method": "GET",
-              "header": [],
-              "url": {
-                "raw": "{{baseUrl}}/api/v1/orders?status=PENDING&page=0&size=10",
-                "host": [
-                  "{{baseUrl}}"
-                ],
-                "path": [
-                  "api",
-                  "v1",
-                  "orders"
-                ],
-                "query": [
-                  {
-                    "key": "status",
-                    "value": "PENDING",
-                    "description": "Order status (PENDING, IN_PREPARATION, READY, DELIVERED, CANCELLED)"
-                  },
-                  {
-                    "key": "page",
-                    "value": "0",
-                    "description": "Page number (0-based)"
-                  },
-                  {
-                    "key": "size",
-                    "value": "10",
-                    "description": "Number of elements per page"
-                  }
-                ]
-              },
-              "description": "Lists orders filtered by status. Only employees can access this endpoint. Returns orders from the restaurant associated with the authenticated employee."
-            },
-            "response": []
-          },
-          {
-            "name": "List Orders By Status - In Preparation",
-            "request": {
-              "auth": {
-                "type": "bearer",
-                "bearer": [
-                  {
-                    "key": "token",
-                    "value": "{{employeeToken}}",
-                    "type": "string"
-                  }
-                ]
-              },
-              "method": "GET",
-              "header": [],
-              "url": {
-                "raw": "{{baseUrl}}/api/v1/orders?status=IN_PREPARATION",
-                "host": [
-                  "{{baseUrl}}"
-                ],
-                "path": [
-                  "api",
-                  "v1",
-                  "orders"
-                ],
-                "query": [
-                  {
-                    "key": "status",
-                    "value": "IN_PREPARATION",
-                    "description": "Order status (PENDING, IN_PREPARATION, READY, DELIVERED, CANCELLED)"
-                  }
-                ]
-              },
-              "description": "Lists orders in preparation status. Uses default pagination (page=0, size=10)."
-            },
-            "response": []
-          },
-          {
-            "name": "Assign Order to Employee",
-            "request": {
-              "auth": {
-                "type": "bearer",
-                "bearer": [
-                  {
-                    "key": "token",
-                    "value": "{{employeeToken}}",
-                    "type": "string"
-                  }
-                ]
-              },
-              "method": "PUT",
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": {
-                "mode": "raw",
-                "raw": "{\n  \"orderId\": 1\n}"
-              },
-              "url": {
-                "raw": "{{baseUrl}}/api/v1/orders",
-                "host": [
-                  "{{baseUrl}}"
-                ],
-                "path": [
-                  "api",
-                  "v1",
-                  "orders"
-                ]
-              },
-              "description": "Assigns a PENDING order to the authenticated employee and changes its status to IN_PREPARATION. The order must belong to the employee's restaurant."
-            },
-            "response": []
-          },
-          {
-            "name": "Mark Order as Ready - Send SMS to Client",
-            "request": {
-              "auth": {
-                "type": "bearer",
-                "bearer": [
-                  {
-                    "key": "token",
-                    "value": "{{employeeToken}}",
-                    "type": "string"
-                  }
-                ]
-              },
-              "method": "PATCH",
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": {
-                "mode": "raw",
-                "raw": "{\n  \"orderId\": 1\n}"
-              },
-              "url": {
-                "raw": "{{baseUrl}}/api/v1/orders/ready",
-                "host": [
-                  "{{baseUrl}}"
-                ],
-                "path": [
-                  "api",
-                  "v1",
-                  "orders",
-                  "ready"
-                ]
-              },
-              "description": "Marks an order as READY and sends an SMS notification to the client with a security PIN (6 digits). The client must present this PIN to claim their order. Only IN_PREPARATION orders can be marked as ready. Integrates with mensajeria-service to send SMS via Twilio."
-            },
-            "response": []
-          }
-        ]
-        }
-    ],
-    "variable": [
         {
-            "key": "baseUrl",
-            "value": "http://localhost:8082",
-            "type": "string"
+          "name": "Toggle Dish Active Flag",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ownerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"active\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/dishes/1/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "dishes",
+                "1",
+                "status"
+              ]
+            }
+          },
+          "response": []
         }
-    ]
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Create Order - Success",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"restaurantId\": 1,\n  \"items\": [\n    {\n      \"dishId\": 1,\n      \"quantity\": 2\n    },\n    {\n      \"dishId\": 2,\n      \"quantity\": 1\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "orders"
+              ]
+            },
+            "description": "Creates a new order for the authenticated client. The order must contain at least one dish from the specified restaurant. A client can only have one active order at a time."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Order - Single Item",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"restaurantId\": 1,\n  \"items\": [\n    {\n      \"dishId\": 1,\n      \"quantity\": 1\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "orders"
+              ]
+            },
+            "description": "Creates a new order with a single dish item."
+          },
+          "response": []
+        },
+        {
+          "name": "List Orders By Status - Pending",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{employeeToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/orders?status=PENDING&page=0&size=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PENDING",
+                  "description": "Order status (PENDING, IN_PREPARATION, READY, DELIVERED, CANCELLED)"
+                },
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Page number (0-based)"
+                },
+                {
+                  "key": "size",
+                  "value": "10",
+                  "description": "Number of elements per page"
+                }
+              ]
+            },
+            "description": "Lists orders filtered by status. Only employees can access this endpoint. Returns orders from the restaurant associated with the authenticated employee."
+          },
+          "response": []
+        },
+        {
+          "name": "List Orders By Status - In Preparation",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{employeeToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/orders?status=IN_PREPARATION",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "IN_PREPARATION",
+                  "description": "Order status (PENDING, IN_PREPARATION, READY, DELIVERED, CANCELLED)"
+                }
+              ]
+            },
+            "description": "Lists orders in preparation status. Uses default pagination (page=0, size=10)."
+          },
+          "response": []
+        },
+        {
+          "name": "Assign Order to Employee",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{employeeToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "orders"
+              ]
+            },
+            "description": "Assigns a PENDING order to the authenticated employee and changes its status to IN_PREPARATION. The order must belong to the employee's restaurant."
+          },
+          "response": []
+        },
+        {
+          "name": "Mark Order as Ready - Send SMS to Client",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{employeeToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/orders/ready",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "orders",
+                "ready"
+              ]
+            },
+            "description": "Marks an order as READY and sends an SMS notification to the client with a security PIN (6 digits). The client must present this PIN to claim their order. Only IN_PREPARATION orders can be marked as ready. Integrates with mensajeria-service to send SMS via Twilio."
+          },
+          "response": []
+        },
+        {
+          "name": "Deliver Order",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{employeeToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": 1,\n  \"securityPin\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/orders/deliver",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "orders",
+                "deliver"
+              ]
+            },
+            "description": "Marks an order as DELIVERED. The employee must provide the security PIN sent to the client. Only READY orders can be marked as delivered."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8082",
+      "type": "string"
+    }
+  ]
 }
