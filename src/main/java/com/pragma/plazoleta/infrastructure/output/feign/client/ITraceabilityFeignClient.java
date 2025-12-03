@@ -1,5 +1,7 @@
 package com.pragma.plazoleta.infrastructure.output.feign.client;
 
+import com.pragma.plazoleta.infrastructure.output.feign.dto.EmployeeRankingResponseDto;
+import com.pragma.plazoleta.infrastructure.output.feign.dto.OrderEfficiencyResponseDto;
 import com.pragma.plazoleta.infrastructure.output.feign.dto.TraceabilityRequestDto;
 import com.pragma.plazoleta.infrastructure.output.feign.dto.TraceabilityResponseDto;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -18,4 +20,10 @@ public interface ITraceabilityFeignClient {
 
     @GetMapping("/traceability/{orderId}")
     List<TraceabilityResponseDto> getTraceabilityByOrderId(@PathVariable("orderId") Long orderId);
+
+    @GetMapping("/traceability/efficiency/restaurant/{restaurantId}/orders")
+    List<OrderEfficiencyResponseDto> getOrdersEfficiencyByRestaurant(@PathVariable("restaurantId") Long restaurantId);
+
+    @GetMapping("/traceability/efficiency/restaurant/{restaurantId}/employees")
+    List<EmployeeRankingResponseDto> getEmployeeRankingByRestaurant(@PathVariable("restaurantId") Long restaurantId);
 }
