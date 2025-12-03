@@ -21,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Component
 public class OrderJpaAdapter implements IOrderPersistencePort {
@@ -86,9 +85,9 @@ public class OrderJpaAdapter implements IOrderPersistencePort {
 
         Page<OrderEntity> orderPage = orderRepository.findByRestaurantIdAndStatus(restaurantId, statusEntity, pageable);
 
-        List<Order> orders = orderPage.getContent().stream()
+        List<Order> orders = List.copyOf(orderPage.getContent().stream()
                 .map(orderEntityMapper::toDomain)
-                .collect(Collectors.toList());
+                .toList());
 
         return PagedResult.of(
                 orders,
@@ -106,4 +105,3 @@ public class OrderJpaAdapter implements IOrderPersistencePort {
                 .map(orderEntityMapper::toDomain);
     }
 }
-

@@ -17,44 +17,13 @@ public class Traceability {
     private String newStatus;
     private Long employeeId;
     private String employeeEmail;
+    private Long restaurantId;
 
     public Traceability() {
-    }
-    
-    public static class ClientInfo {
-        private final Long id;
-        private final String email;
-
-        public ClientInfo(Long id, String email) {
-            this.id = id;
-            this.email = email;
-        }
-
-        public Long getId() {
-            return id;
-        }
-
-        public String getEmail() {
-            return email;
-        }
-    }
-    
-    public static class EmployeeInfo {
-        private final Long id;
-        private final String email;
-
-        public EmployeeInfo(Long id, String email) {
-            this.id = id;
-            this.email = email;
-        }
-
-        public Long getId() {
-            return id;
-        }
-
-        public String getEmail() {
-            return email;
-        }
+                /* Constructor vacío intencional.
+           Requerido por frameworks y bibliotecas de persistencia/serialización
+           (por ejemplo, Jackson, JPA, MapStruct) que instancian la clase mediante reflexión.
+           No debe contener lógica adicional. */
     }
 
 }
