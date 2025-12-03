@@ -22,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -65,9 +64,12 @@ public class OrderHandler implements IOrderHandler {
         PagedResult<Order> pagedResult = orderServicePort.getOrdersByRestaurantAndStatus(
                 employeeId, orderStatus, page, size);
 
-        List<OrderResponseDto> orderResponses = pagedResult.getContent().stream()
-                .map(this::buildOrderResponse)
-                .collect(Collectors.toList());
+        // Reemplazo de collect(Collectors.toList()) por toList() y se asegura inmutabilidad
+        List<OrderResponseDto> orderResponses = List.copyOf(
+                pagedResult.getContent().stream()
+                        .map(this::buildOrderResponse)
+                        .toList()
+        );
 
         return PagedResponse.<OrderResponseDto>builder()
                 .content(orderResponses)
