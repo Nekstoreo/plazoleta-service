@@ -301,7 +301,6 @@ public class OrderUseCase implements IOrderServicePort {
         if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
             throw new IllegalArgumentException("Phone number cannot be empty");
         }
-        // E.164 format: +[1-9]{1}[0-9]{1,14}
         if (!phoneNumber.matches("^\\+[1-9]\\d{1,14}$")) {
             throw new IllegalArgumentException(
                     "Phone number must be in E.164 format (e.g., +573001234567). Received: " + phoneNumber);
