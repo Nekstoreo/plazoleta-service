@@ -5,4 +5,6 @@ import java.util.Optional;
 public interface IEmployeeRestaurantPort {
 
     Optional<Long> getRestaurantIdByEmployeeId(Long employeeId);
+
+    Optional<String> getEmployeeEmailById(Long employeeId);
 }

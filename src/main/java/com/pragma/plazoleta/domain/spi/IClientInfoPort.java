@@ -5,4 +5,6 @@ import java.util.Optional;
 public interface IClientInfoPort {
 
     Optional<String> getClientPhoneById(Long clientId);
+
+    Optional<String> getClientEmailById(Long clientId);
 }
