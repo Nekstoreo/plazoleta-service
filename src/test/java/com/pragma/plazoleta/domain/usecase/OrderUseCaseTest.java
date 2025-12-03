@@ -8,6 +8,7 @@ import com.pragma.plazoleta.domain.exception.DishNotFromRestaurantException;
 import com.pragma.plazoleta.domain.exception.EmptyOrderException;
 import com.pragma.plazoleta.domain.exception.EmployeeNotAssociatedWithRestaurantException;
 import com.pragma.plazoleta.domain.exception.InvalidQuantityException;
+import com.pragma.plazoleta.domain.exception.InvalidSecurityPinException;
 import com.pragma.plazoleta.domain.exception.OrderNotInPreparationException;
 import com.pragma.plazoleta.domain.exception.RestaurantNotFoundException;
 import com.pragma.plazoleta.domain.model.Dish;
@@ -575,6 +576,283 @@ class OrderUseCaseTest {
         dish.setId(id);
         dish.setActive(true);
         return dish;
+    }
+
+    @Nested
+    @DisplayName("Mark Order As Delivered")
+    class MarkOrderAsDeliveredTests {
+
+        private static final Long ORDER_ID = 200L;
+        private static final String VALID_SECURITY_PIN = "123456";
+
+        @Test
+        @DisplayName("Should mark order as delivered successfully when order is READY")
+        void shouldMarkOrderAsDeliveredSuccessfully() {
+            Order readyOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.READY);
+            readyOrder.setEmployeeId(EMPLOYEE_ID);
+            readyOrder.setSecurityPin(VALID_SECURITY_PIN);
+
+            Order expectedDeliveredOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.DELIVERED);
+            expectedDeliveredOrder.setEmployeeId(EMPLOYEE_ID);
+            expectedDeliveredOrder.setSecurityPin(VALID_SECURITY_PIN);
+
+            when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
+                    .thenReturn(Optional.of(RESTAURANT_ID));
+            when(orderPersistencePort.findById(ORDER_ID))
+                    .thenReturn(Optional.of(readyOrder));
+            when(orderPersistencePort.saveOrder(any(Order.class)))
+                    .thenReturn(expectedDeliveredOrder);
+
+            Order result = orderUseCase.markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, VALID_SECURITY_PIN);
+
+            assertThat(result).isNotNull();
+            assertThat(result.getId()).isEqualTo(ORDER_ID);
+            assertThat(result.getStatus()).isEqualTo(OrderStatus.DELIVERED);
+            assertThat(result.getEmployeeId()).isEqualTo(EMPLOYEE_ID);
+
+            verify(employeeRestaurantPort).getRestaurantIdByEmployeeId(EMPLOYEE_ID);
+            verify(orderPersistencePort).findById(ORDER_ID);
+            verify(orderPersistencePort).saveOrder(any(Order.class));
+        }
+
+        @Test
+        @DisplayName("Should throw OrderNotFoundException when order does not exist")
+        void shouldThrowOrderNotFoundExceptionWhenOrderDoesNotExist() {
+            when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
+                    .thenReturn(Optional.of(RESTAURANT_ID));
+            when(orderPersistencePort.findById(ORDER_ID))
+                    .thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> orderUseCase.markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, VALID_SECURITY_PIN))
+                    .isInstanceOf(com.pragma.plazoleta.domain.exception.OrderNotFoundException.class)
+                    .hasMessageContaining(ORDER_ID.toString());
+
+            verify(orderPersistencePort, never()).saveOrder(any());
+        }
+
+        @Test
+        @DisplayName("Should throw InvalidOrderStatusException when order is PENDING")
+        void shouldThrowInvalidOrderStatusExceptionWhenOrderIsPending() {
+            Order pendingOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.PENDING);
+
+            when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
+                    .thenReturn(Optional.of(RESTAURANT_ID));
+            when(orderPersistencePort.findById(ORDER_ID))
+                    .thenReturn(Optional.of(pendingOrder));
+
+            assertThatThrownBy(() -> orderUseCase.markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, VALID_SECURITY_PIN))
+                    .isInstanceOf(com.pragma.plazoleta.domain.exception.InvalidOrderStatusException.class)
+                    .hasMessageContaining("READY");
+
+            verify(orderPersistencePort, never()).saveOrder(any());
+        }
+
+        @Test
+        @DisplayName("Should throw InvalidOrderStatusException when order is IN_PREPARATION")
+        void shouldThrowInvalidOrderStatusExceptionWhenOrderIsInPreparation() {
+            Order inPreparationOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.IN_PREPARATION);
+
+            when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
+                    .thenReturn(Optional.of(RESTAURANT_ID));
+            when(orderPersistencePort.findById(ORDER_ID))
+                    .thenReturn(Optional.of(inPreparationOrder));
+
+            assertThatThrownBy(() -> orderUseCase.markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, VALID_SECURITY_PIN))
+                    .isInstanceOf(com.pragma.plazoleta.domain.exception.InvalidOrderStatusException.class);
+
+            verify(orderPersistencePort, never()).saveOrder(any());
+        }
+
+        @Test
+        @DisplayName("Should throw InvalidOrderStatusException when order is CANCELLED")
+        void shouldThrowInvalidOrderStatusExceptionWhenOrderIsCancelled() {
+            Order cancelledOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.CANCELLED);
+
+            when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
+                    .thenReturn(Optional.of(RESTAURANT_ID));
+            when(orderPersistencePort.findById(ORDER_ID))
+                    .thenReturn(Optional.of(cancelledOrder));
+
+            assertThatThrownBy(() -> orderUseCase.markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, VALID_SECURITY_PIN))
+                    .isInstanceOf(com.pragma.plazoleta.domain.exception.InvalidOrderStatusException.class);
+
+            verify(orderPersistencePort, never()).saveOrder(any());
+        }
+
+        @Test
+        @DisplayName("Should throw InvalidOrderStatusException when order is already DELIVERED")
+        void shouldThrowInvalidOrderStatusExceptionWhenOrderIsAlreadyDelivered() {
+            Order deliveredOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.DELIVERED);
+
+            when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
+                    .thenReturn(Optional.of(RESTAURANT_ID));
+            when(orderPersistencePort.findById(ORDER_ID))
+                    .thenReturn(Optional.of(deliveredOrder));
+
+            assertThatThrownBy(() -> orderUseCase.markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, VALID_SECURITY_PIN))
+                    .isInstanceOf(com.pragma.plazoleta.domain.exception.InvalidOrderStatusException.class);
+
+            verify(orderPersistencePort, never()).saveOrder(any());
+        }
+
+        @Test
+        @DisplayName("Should throw InvalidSecurityPinException when provided PIN is incorrect")
+        void shouldThrowInvalidSecurityPinExceptionWhenPinIsIncorrect() {
+            Order readyOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.READY);
+            readyOrder.setEmployeeId(EMPLOYEE_ID);
+            readyOrder.setSecurityPin(VALID_SECURITY_PIN);
+
+            String incorrectPin = "999999";
+
+            when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
+                    .thenReturn(Optional.of(RESTAURANT_ID));
+            when(orderPersistencePort.findById(ORDER_ID))
+                    .thenReturn(Optional.of(readyOrder));
+
+            assertThatThrownBy(() -> orderUseCase.markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, incorrectPin))
+                    .isInstanceOf(InvalidSecurityPinException.class)
+                    .hasMessageContaining("security PIN");
+
+            verify(orderPersistencePort, never()).saveOrder(any());
+        }
+
+        @Test
+        @DisplayName("Should throw InvalidSecurityPinException when provided PIN is null")
+        void shouldThrowInvalidSecurityPinExceptionWhenPinIsNull() {
+            Order readyOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.READY);
+            readyOrder.setEmployeeId(EMPLOYEE_ID);
+            readyOrder.setSecurityPin(VALID_SECURITY_PIN);
+
+            when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
+                    .thenReturn(Optional.of(RESTAURANT_ID));
+            when(orderPersistencePort.findById(ORDER_ID))
+                    .thenReturn(Optional.of(readyOrder));
+
+            assertThatThrownBy(() -> orderUseCase.markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, null))
+                    .isInstanceOf(InvalidSecurityPinException.class);
+
+            verify(orderPersistencePort, never()).saveOrder(any());
+        }
+
+        @Test
+        @DisplayName("Should throw InvalidSecurityPinException when order PIN is null")
+        void shouldThrowInvalidSecurityPinExceptionWhenOrderPinIsNull() {
+            Order readyOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.READY);
+            readyOrder.setEmployeeId(EMPLOYEE_ID);
+            readyOrder.setSecurityPin(null);
+
+            when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
+                    .thenReturn(Optional.of(RESTAURANT_ID));
+            when(orderPersistencePort.findById(ORDER_ID))
+                    .thenReturn(Optional.of(readyOrder));
+
+            assertThatThrownBy(() -> orderUseCase.markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, VALID_SECURITY_PIN))
+                    .isInstanceOf(InvalidSecurityPinException.class);
+
+            verify(orderPersistencePort, never()).saveOrder(any());
+        }
+
+        @Test
+        @DisplayName("Should throw OrderNotFromEmployeeRestaurantException when order does not belong to employee's restaurant")
+        void shouldThrowOrderNotFromEmployeeRestaurantException() {
+            Long differentRestaurantId = 999L;
+            Order orderFromDifferentRestaurant = createOrderWithStatus(ORDER_ID, CLIENT_ID, differentRestaurantId, OrderStatus.READY);
+            orderFromDifferentRestaurant.setSecurityPin(VALID_SECURITY_PIN);
+
+            when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
+                    .thenReturn(Optional.of(RESTAURANT_ID));
+            when(orderPersistencePort.findById(ORDER_ID))
+                    .thenReturn(Optional.of(orderFromDifferentRestaurant));
+
+            assertThatThrownBy(() -> orderUseCase.markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, VALID_SECURITY_PIN))
+                    .isInstanceOf(com.pragma.plazoleta.domain.exception.OrderNotFromEmployeeRestaurantException.class)
+                    .hasMessageContaining(ORDER_ID.toString());
+
+            verify(orderPersistencePort, never()).saveOrder(any());
+        }
+
+        @Test
+        @DisplayName("Should throw EmployeeNotAssociatedWithRestaurantException when employee has no restaurant")
+        void shouldThrowEmployeeNotAssociatedWithRestaurantException() {
+            when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
+                    .thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> orderUseCase.markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, VALID_SECURITY_PIN))
+                    .isInstanceOf(EmployeeNotAssociatedWithRestaurantException.class)
+                    .hasMessageContaining(EMPLOYEE_ID.toString());
+
+            verify(orderPersistencePort, never()).findById(any());
+            verify(orderPersistencePort, never()).saveOrder(any());
+        }
+
+        @Test
+        @DisplayName("Should update order timestamp when marking as delivered")
+        void shouldUpdateOrderTimestamp() {
+            Order readyOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.READY);
+            readyOrder.setEmployeeId(EMPLOYEE_ID);
+            readyOrder.setSecurityPin(VALID_SECURITY_PIN);
+
+            when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
+                    .thenReturn(Optional.of(RESTAURANT_ID));
+            when(orderPersistencePort.findById(ORDER_ID))
+                    .thenReturn(Optional.of(readyOrder));
+            when(orderPersistencePort.saveOrder(any(Order.class)))
+                    .thenAnswer(invocation -> {
+                        Order savedOrder = invocation.getArgument(0);
+                        assertThat(savedOrder.getUpdatedAt()).isNotNull();
+                        return savedOrder;
+                    });
+
+            orderUseCase.markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, VALID_SECURITY_PIN);
+
+            verify(orderPersistencePort).saveOrder(any(Order.class));
+        }
+
+        @Test
+        @DisplayName("Should persist order with DELIVERED status")
+        void shouldPersistOrderWithDeliveredStatus() {
+            Order readyOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.READY);
+            readyOrder.setEmployeeId(EMPLOYEE_ID);
+            readyOrder.setSecurityPin(VALID_SECURITY_PIN);
+
+            when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
+                    .thenReturn(Optional.of(RESTAURANT_ID));
+            when(orderPersistencePort.findById(ORDER_ID))
+                    .thenReturn(Optional.of(readyOrder));
+            when(orderPersistencePort.saveOrder(any(Order.class)))
+                    .thenAnswer(invocation -> {
+                        Order orderToSave = invocation.getArgument(0);
+                        assertThat(orderToSave.getStatus()).isEqualTo(OrderStatus.DELIVERED);
+                        orderToSave.setId(ORDER_ID);
+                        return orderToSave;
+                    });
+
+            Order result = orderUseCase.markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, VALID_SECURITY_PIN);
+
+            assertThat(result.getStatus()).isEqualTo(OrderStatus.DELIVERED);
+            verify(orderPersistencePort).saveOrder(any(Order.class));
+        }
+
+        @Test
+        @DisplayName("Should correctly validate security PIN with valid PIN")
+        void shouldCorrectlyValidateSecurityPinWithValidPin() {
+            String actualPin = "654321";
+            Order readyOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.READY);
+            readyOrder.setEmployeeId(EMPLOYEE_ID);
+            readyOrder.setSecurityPin(actualPin);
+
+            when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
+                    .thenReturn(Optional.of(RESTAURANT_ID));
+            when(orderPersistencePort.findById(ORDER_ID))
+                    .thenReturn(Optional.of(readyOrder));
+            when(orderPersistencePort.saveOrder(any(Order.class)))
+                    .thenReturn(readyOrder);
+
+            Order result = orderUseCase.markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, actualPin);
+
+            assertThat(result).isNotNull();
+            verify(orderPersistencePort).saveOrder(any(Order.class));
+        }
     }
 
     @Nested

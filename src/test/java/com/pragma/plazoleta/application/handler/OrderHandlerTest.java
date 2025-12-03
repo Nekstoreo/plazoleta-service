@@ -2,6 +2,8 @@ package com.pragma.plazoleta.application.handler;
 
 import com.pragma.plazoleta.application.dto.request.AssignOrderRequestDto;
 import com.pragma.plazoleta.application.dto.request.CreateOrderRequestDto;
+import com.pragma.plazoleta.application.dto.request.DeliverOrderRequestDto;
+import com.pragma.plazoleta.application.dto.request.MarkOrderReadyRequestDto;
 import com.pragma.plazoleta.application.dto.request.OrderItemRequestDto;
 import com.pragma.plazoleta.application.dto.response.OrderItemResponseDto;
 import com.pragma.plazoleta.application.dto.response.OrderResponseDto;
@@ -517,5 +519,192 @@ class OrderHandlerTest {
                     .isInstanceOf(com.pragma.plazoleta.domain.exception.OrderNotFromEmployeeRestaurantException.class);
 
             verify(orderServicePort).assignOrderToEmployee(ORDER_ID, EMPLOYEE_ID);
+        }
+    }
+
+    @Nested
+    @DisplayName("Mark Order As Ready")
+    class MarkOrderAsReadyTests {
+
+        private static final Long ORDER_ID = 300L;
+
+        @Test
+        @DisplayName("Should mark order as ready successfully")
+        void shouldMarkOrderAsReadySuccessfully() {
+            MarkOrderReadyRequestDto request = new MarkOrderReadyRequestDto(ORDER_ID);
+
+            Order readyOrder = new Order();
+            readyOrder.setId(ORDER_ID);
+            readyOrder.setClientId(CLIENT_ID);
+            readyOrder.setRestaurantId(RESTAURANT_ID);
+            readyOrder.setEmployeeId(EMPLOYEE_ID);
+            readyOrder.setStatus(OrderStatus.READY);
+            readyOrder.setSecurityPin("123456");
+            readyOrder.setCreatedAt(LocalDateTime.now());
+            readyOrder.setUpdatedAt(LocalDateTime.now());
+            OrderItem item = new OrderItem();
+            item.setDishId(DISH_ID);
+            item.setQuantity(1);
+            readyOrder.setItems(Arrays.asList(item));
+
+            when(orderServicePort.markOrderAsReady(ORDER_ID, EMPLOYEE_ID))
+                    .thenReturn(readyOrder);
+            when(restaurantPersistencePort.findById(RESTAURANT_ID))
+                    .thenReturn(Optional.of(restaurant));
+            when(dishPersistencePort.findById(DISH_ID))
+                    .thenReturn(Optional.of(dish));
+            when(orderDtoMapper.toOrderResponseDto(readyOrder))
+                    .thenReturn(orderResponseDto);
+            when(orderDtoMapper.toOrderItemResponseDto(any(OrderItem.class)))
+                    .thenReturn(new OrderItemResponseDto(1L, DISH_ID, DISH_NAME, DISH_PRICE, 1));
+
+            OrderResponseDto result = orderHandler.markOrderAsReady(request, EMPLOYEE_ID);
+
+            assertThat(result).isNotNull();
+            verify(orderServicePort).markOrderAsReady(ORDER_ID, EMPLOYEE_ID);
+            verify(restaurantPersistencePort).findById(RESTAURANT_ID);
+        }
+
+        @Test
+        @DisplayName("Should throw exception when order does not exist")
+        void shouldThrowExceptionWhenOrderDoesNotExist() {
+            MarkOrderReadyRequestDto request = new MarkOrderReadyRequestDto(ORDER_ID);
+
+            when(orderServicePort.markOrderAsReady(ORDER_ID, EMPLOYEE_ID))
+                    .thenThrow(new com.pragma.plazoleta.domain.exception.OrderNotFoundException(ORDER_ID));
+
+            assertThatThrownBy(() -> orderHandler.markOrderAsReady(request, EMPLOYEE_ID))
+                    .isInstanceOf(com.pragma.plazoleta.domain.exception.OrderNotFoundException.class);
+
+            verify(orderServicePort).markOrderAsReady(ORDER_ID, EMPLOYEE_ID);
+        }
+
+        @Test
+        @DisplayName("Should throw exception when order is not IN_PREPARATION")
+        void shouldThrowExceptionWhenOrderIsNotInPreparation() {
+            MarkOrderReadyRequestDto request = new MarkOrderReadyRequestDto(ORDER_ID);
+
+            when(orderServicePort.markOrderAsReady(ORDER_ID, EMPLOYEE_ID))
+                    .thenThrow(new com.pragma.plazoleta.domain.exception.OrderNotInPreparationException(ORDER_ID));
+
+            assertThatThrownBy(() -> orderHandler.markOrderAsReady(request, EMPLOYEE_ID))
+                    .isInstanceOf(com.pragma.plazoleta.domain.exception.OrderNotInPreparationException.class);
+
+            verify(orderServicePort).markOrderAsReady(ORDER_ID, EMPLOYEE_ID);
+        }
+    }
+
+    @Nested
+    @DisplayName("Deliver Order")
+    class DeliverOrderTests {
+
+        private static final Long ORDER_ID = 400L;
+        private static final String SECURITY_PIN = "123456";
+
+        @Test
+        @DisplayName("Should deliver order successfully")
+        void shouldDeliverOrderSuccessfully() {
+            DeliverOrderRequestDto request = new DeliverOrderRequestDto(ORDER_ID, SECURITY_PIN);
+
+            Order deliveredOrder = new Order();
+            deliveredOrder.setId(ORDER_ID);
+            deliveredOrder.setClientId(CLIENT_ID);
+            deliveredOrder.setRestaurantId(RESTAURANT_ID);
+            deliveredOrder.setEmployeeId(EMPLOYEE_ID);
+            deliveredOrder.setStatus(OrderStatus.DELIVERED);
+            deliveredOrder.setSecurityPin(SECURITY_PIN);
+            deliveredOrder.setCreatedAt(LocalDateTime.now());
+            deliveredOrder.setUpdatedAt(LocalDateTime.now());
+            OrderItem item = new OrderItem();
+            item.setDishId(DISH_ID);
+            item.setQuantity(2);
+            deliveredOrder.setItems(Arrays.asList(item));
+
+            when(orderServicePort.markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, SECURITY_PIN))
+                    .thenReturn(deliveredOrder);
+            when(restaurantPersistencePort.findById(RESTAURANT_ID))
+                    .thenReturn(Optional.of(restaurant));
+            when(dishPersistencePort.findById(DISH_ID))
+                    .thenReturn(Optional.of(dish));
+            when(orderDtoMapper.toOrderResponseDto(deliveredOrder))
+                    .thenReturn(orderResponseDto);
+            when(orderDtoMapper.toOrderItemResponseDto(any(OrderItem.class)))
+                    .thenReturn(new OrderItemResponseDto(1L, DISH_ID, DISH_NAME, DISH_PRICE, 2));
+
+            OrderResponseDto result = orderHandler.deliverOrder(request, EMPLOYEE_ID);
+
+            assertThat(result).isNotNull();
+            verify(orderServicePort).markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, SECURITY_PIN);
+            verify(restaurantPersistencePort).findById(RESTAURANT_ID);
+        }
+
+        @Test
+        @DisplayName("Should throw exception when order does not exist")
+        void shouldThrowExceptionWhenOrderDoesNotExist() {
+            DeliverOrderRequestDto request = new DeliverOrderRequestDto(ORDER_ID, SECURITY_PIN);
+
+            when(orderServicePort.markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, SECURITY_PIN))
+                    .thenThrow(new com.pragma.plazoleta.domain.exception.OrderNotFoundException(ORDER_ID));
+
+            assertThatThrownBy(() -> orderHandler.deliverOrder(request, EMPLOYEE_ID))
+                    .isInstanceOf(com.pragma.plazoleta.domain.exception.OrderNotFoundException.class);
+
+            verify(orderServicePort).markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, SECURITY_PIN);
+        }
+
+        @Test
+        @DisplayName("Should throw exception when order is not READY")
+        void shouldThrowExceptionWhenOrderIsNotReady() {
+            DeliverOrderRequestDto request = new DeliverOrderRequestDto(ORDER_ID, SECURITY_PIN);
+
+            when(orderServicePort.markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, SECURITY_PIN))
+                    .thenThrow(new com.pragma.plazoleta.domain.exception.InvalidOrderStatusException(ORDER_ID, "IN_PREPARATION"));
+
+            assertThatThrownBy(() -> orderHandler.deliverOrder(request, EMPLOYEE_ID))
+                    .isInstanceOf(com.pragma.plazoleta.domain.exception.InvalidOrderStatusException.class);
+
+            verify(orderServicePort).markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, SECURITY_PIN);
+        }
+
+        @Test
+        @DisplayName("Should throw exception when security PIN is invalid")
+        void shouldThrowExceptionWhenSecurityPinIsInvalid() {
+            DeliverOrderRequestDto request = new DeliverOrderRequestDto(ORDER_ID, "999999");
+
+            when(orderServicePort.markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, "999999"))
+                    .thenThrow(new com.pragma.plazoleta.domain.exception.InvalidSecurityPinException("The security PIN provided does not match the order's PIN."));
+
+            assertThatThrownBy(() -> orderHandler.deliverOrder(request, EMPLOYEE_ID))
+                    .isInstanceOf(com.pragma.plazoleta.domain.exception.InvalidSecurityPinException.class);
+
+            verify(orderServicePort).markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, "999999");
+        }
+
+        @Test
+        @DisplayName("Should throw exception when order does not belong to employee's restaurant")
+        void shouldThrowExceptionWhenOrderDoesNotBelongToRestaurant() {
+            DeliverOrderRequestDto request = new DeliverOrderRequestDto(ORDER_ID, SECURITY_PIN);
+
+            when(orderServicePort.markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, SECURITY_PIN))
+                    .thenThrow(new com.pragma.plazoleta.domain.exception.OrderNotFromEmployeeRestaurantException(ORDER_ID, 999L));
+
+            assertThatThrownBy(() -> orderHandler.deliverOrder(request, EMPLOYEE_ID))
+                    .isInstanceOf(com.pragma.plazoleta.domain.exception.OrderNotFromEmployeeRestaurantException.class);
+
+            verify(orderServicePort).markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, SECURITY_PIN);
+        }
+
+        @Test
+        @DisplayName("Should throw exception when employee is not associated with restaurant")
+        void shouldThrowExceptionWhenEmployeeNotAssociated() {
+            DeliverOrderRequestDto request = new DeliverOrderRequestDto(ORDER_ID, SECURITY_PIN);
+
+            when(orderServicePort.markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, SECURITY_PIN))
+                    .thenThrow(new com.pragma.plazoleta.domain.exception.EmployeeNotAssociatedWithRestaurantException(EMPLOYEE_ID));
+
+            assertThatThrownBy(() -> orderHandler.deliverOrder(request, EMPLOYEE_ID))
+                    .isInstanceOf(com.pragma.plazoleta.domain.exception.EmployeeNotAssociatedWithRestaurantException.class);
+
+            verify(orderServicePort).markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, SECURITY_PIN);
         }
     }}
