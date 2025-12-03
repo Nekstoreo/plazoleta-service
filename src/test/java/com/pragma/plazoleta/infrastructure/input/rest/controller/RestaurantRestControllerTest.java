@@ -29,7 +29,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -321,7 +320,7 @@ class RestaurantRestControllerTest {
                     .last(true)
                     .build();
 
-            when(dishHandler.getDishesByRestaurant(eq(RESTAURANT_ID), eq(null), eq(0), eq(10)))
+            when(dishHandler.getDishesByRestaurant(RESTAURANT_ID, null, 0, 10))
                     .thenReturn(response);
 
             // Act & Assert
@@ -341,7 +340,7 @@ class RestaurantRestControllerTest {
                     .andExpect(jsonPath("$.first").value(true))
                     .andExpect(jsonPath("$.last").value(true));
 
-            verify(dishHandler).getDishesByRestaurant(eq(RESTAURANT_ID), eq(null), eq(0), eq(10));
+            verify(dishHandler).getDishesByRestaurant(RESTAURANT_ID, null, 0, 10);
         }
 
         @Test
@@ -368,7 +367,7 @@ class RestaurantRestControllerTest {
                     .last(true)
                     .build();
 
-            when(dishHandler.getDishesByRestaurant(eq(RESTAURANT_ID), eq(category), eq(0), eq(10)))
+            when(dishHandler.getDishesByRestaurant(RESTAURANT_ID, category, 0, 10))
                     .thenReturn(response);
 
             // Act & Assert
@@ -380,7 +379,7 @@ class RestaurantRestControllerTest {
                     .andExpect(jsonPath("$.content.length()").value(1))
                     .andExpect(jsonPath("$.content[0].category").value(category));
 
-            verify(dishHandler).getDishesByRestaurant(eq(RESTAURANT_ID), eq(category), eq(0), eq(10));
+            verify(dishHandler).getDishesByRestaurant(RESTAURANT_ID, category, 0, 10);
         }
 
         @Test
@@ -397,7 +396,7 @@ class RestaurantRestControllerTest {
                     .last(true)
                     .build();
 
-            when(dishHandler.getDishesByRestaurant(eq(RESTAURANT_ID), eq(null), eq(0), eq(10)))
+            when(dishHandler.getDishesByRestaurant(RESTAURANT_ID, null, 0, 10))
                     .thenReturn(emptyResponse);
 
             // Act & Assert
@@ -409,7 +408,7 @@ class RestaurantRestControllerTest {
                     .andExpect(jsonPath("$.content.length()").value(0))
                     .andExpect(jsonPath("$.totalElements").value(0));
 
-            verify(dishHandler).getDishesByRestaurant(eq(RESTAURANT_ID), eq(null), eq(0), eq(10));
+            verify(dishHandler).getDishesByRestaurant(RESTAURANT_ID, null, 0, 10);
         }
 
         @Test
@@ -426,14 +425,14 @@ class RestaurantRestControllerTest {
                     .last(true)
                     .build();
 
-            when(dishHandler.getDishesByRestaurant(eq(RESTAURANT_ID), eq(null), eq(0), eq(10)))
+            when(dishHandler.getDishesByRestaurant(RESTAURANT_ID, null, 0, 10))
                     .thenReturn(response);
 
             // Act & Assert
             mockMvc.perform(get(BASE_URL + "/" + RESTAURANT_ID + "/dishes"))
                     .andExpect(status().isOk());
 
-            verify(dishHandler).getDishesByRestaurant(eq(RESTAURANT_ID), eq(null), eq(0), eq(10));
+            verify(dishHandler).getDishesByRestaurant(RESTAURANT_ID, null, 0, 10);
         }
     }
 
@@ -447,7 +446,7 @@ class RestaurantRestControllerTest {
         @DisplayName("Should return 404 when restaurant does not exist")
         void shouldReturn404WhenRestaurantDoesNotExist() throws Exception {
             // Arrange
-            when(dishHandler.getDishesByRestaurant(eq(RESTAURANT_ID), eq(null), eq(0), eq(10)))
+            when(dishHandler.getDishesByRestaurant(RESTAURANT_ID, null, 0, 10))
                     .thenThrow(new RestaurantNotFoundException(RESTAURANT_ID));
 
             // Act & Assert

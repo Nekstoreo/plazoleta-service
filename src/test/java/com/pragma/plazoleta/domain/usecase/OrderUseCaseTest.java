@@ -464,7 +464,7 @@ class OrderUseCaseTest {
 
             when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
                     .thenReturn(Optional.of(RESTAURANT_ID));
-            when(orderPersistencePort.findByRestaurantIdAndStatusPaginated(eq(RESTAURANT_ID), eq(status), eq(page), eq(size)))
+            when(orderPersistencePort.findByRestaurantIdAndStatusPaginated(RESTAURANT_ID, status, page, size))
                     .thenReturn(expectedResult);
 
             PagedResult<Order> result = orderUseCase.getOrdersByRestaurantAndStatus(EMPLOYEE_ID, status, page, size);
@@ -496,7 +496,7 @@ class OrderUseCaseTest {
 
             when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
                     .thenReturn(Optional.of(RESTAURANT_ID));
-            when(orderPersistencePort.findByRestaurantIdAndStatusPaginated(eq(RESTAURANT_ID), eq(status), eq(page), eq(size)))
+            when(orderPersistencePort.findByRestaurantIdAndStatusPaginated(RESTAURANT_ID, status, page, size))
                     .thenReturn(emptyResult);
 
             PagedResult<Order> result = orderUseCase.getOrdersByRestaurantAndStatus(EMPLOYEE_ID, status, page, size);

@@ -34,7 +34,6 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -192,7 +191,7 @@ class OrderHandlerTest {
                     .quantity(2)
                     .build();
 
-            when(orderServicePort.getOrdersByRestaurantAndStatus(eq(EMPLOYEE_ID), eq(OrderStatus.PENDING), eq(page), eq(size)))
+            when(orderServicePort.getOrdersByRestaurantAndStatus(EMPLOYEE_ID, OrderStatus.PENDING, page, size))
                     .thenReturn(pagedResult);
             when(orderDtoMapper.toOrderResponseDto(order)).thenReturn(orderResponseDto);
             when(orderDtoMapper.toOrderResponseDto(order2)).thenReturn(orderResponseDto2);
@@ -229,7 +228,7 @@ class OrderHandlerTest {
                     0
             );
 
-            when(orderServicePort.getOrdersByRestaurantAndStatus(eq(EMPLOYEE_ID), eq(OrderStatus.READY), eq(page), eq(size)))
+            when(orderServicePort.getOrdersByRestaurantAndStatus(EMPLOYEE_ID, OrderStatus.READY, page, size))
                     .thenReturn(emptyResult);
 
             PagedResponse<OrderResponseDto> result = orderHandler.getOrdersByStatus(EMPLOYEE_ID, status, page, size);
@@ -254,7 +253,7 @@ class OrderHandlerTest {
                     0
             );
 
-            when(orderServicePort.getOrdersByRestaurantAndStatus(eq(EMPLOYEE_ID), eq(OrderStatus.PENDING), eq(page), eq(size)))
+            when(orderServicePort.getOrdersByRestaurantAndStatus(EMPLOYEE_ID, OrderStatus.PENDING, page, size))
                     .thenReturn(pagedResult);
 
             PagedResponse<OrderResponseDto> result = orderHandler.getOrdersByStatus(EMPLOYEE_ID, status, page, size);
@@ -295,7 +294,7 @@ class OrderHandlerTest {
                     .quantity(2)
                     .build();
 
-            when(orderServicePort.getOrdersByRestaurantAndStatus(eq(EMPLOYEE_ID), eq(OrderStatus.PENDING), eq(page), eq(size)))
+            when(orderServicePort.getOrdersByRestaurantAndStatus(EMPLOYEE_ID, OrderStatus.PENDING, page, size))
                     .thenReturn(pagedResult);
             when(orderDtoMapper.toOrderResponseDto(order)).thenReturn(orderResponseDto);
             when(restaurantPersistencePort.findById(RESTAURANT_ID)).thenReturn(Optional.of(restaurant));
@@ -328,7 +327,7 @@ class OrderHandlerTest {
                     .quantity(2)
                     .build();
 
-            when(orderServicePort.getOrdersByRestaurantAndStatus(eq(EMPLOYEE_ID), eq(OrderStatus.PENDING), eq(page), eq(size)))
+            when(orderServicePort.getOrdersByRestaurantAndStatus(EMPLOYEE_ID, OrderStatus.PENDING, page, size))
                     .thenReturn(pagedResult);
             when(orderDtoMapper.toOrderResponseDto(order)).thenReturn(orderResponseDto);
             when(restaurantPersistencePort.findById(RESTAURANT_ID)).thenReturn(Optional.of(restaurant));
@@ -377,7 +376,7 @@ class OrderHandlerTest {
                     .securityPin(order.getSecurityPin())
                     .build();
 
-            when(orderServicePort.getOrdersByRestaurantAndStatus(eq(EMPLOYEE_ID), eq(OrderStatus.PENDING), eq(page), eq(size)))
+            when(orderServicePort.getOrdersByRestaurantAndStatus(EMPLOYEE_ID, OrderStatus.PENDING, page, size))
                     .thenReturn(pagedResult);
             when(orderDtoMapper.toOrderResponseDto(order)).thenReturn(responseDto);
             when(restaurantPersistencePort.findById(RESTAURANT_ID)).thenReturn(Optional.of(restaurant));
@@ -418,7 +417,7 @@ class OrderHandlerTest {
                     .quantity(2)
                     .build();
 
-            when(orderServicePort.getOrdersByRestaurantAndStatus(eq(EMPLOYEE_ID), eq(OrderStatus.IN_PREPARATION), eq(page), eq(size)))
+            when(orderServicePort.getOrdersByRestaurantAndStatus(EMPLOYEE_ID, OrderStatus.IN_PREPARATION, page, size))
                     .thenReturn(pagedResult);
             when(orderDtoMapper.toOrderResponseDto(order)).thenReturn(orderResponseDto);
             when(restaurantPersistencePort.findById(RESTAURANT_ID)).thenReturn(Optional.of(restaurant));
