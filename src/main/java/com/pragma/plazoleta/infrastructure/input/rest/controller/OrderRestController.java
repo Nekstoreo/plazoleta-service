@@ -2,6 +2,7 @@ package com.pragma.plazoleta.infrastructure.input.rest.controller;
 
 import com.pragma.plazoleta.application.dto.request.AssignOrderRequestDto;
 import com.pragma.plazoleta.application.dto.request.CreateOrderRequestDto;
+import com.pragma.plazoleta.application.dto.request.MarkOrderReadyRequestDto;
 import com.pragma.plazoleta.application.dto.response.OrderResponseDto;
 import com.pragma.plazoleta.application.dto.response.PagedResponse;
 import com.pragma.plazoleta.application.handler.IOrderHandler;
@@ -20,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -139,6 +141,39 @@ public class OrderRestController {
             @Valid @RequestBody AssignOrderRequestDto request) {
         Long employeeId = getAuthenticatedUserId();
         OrderResponseDto response = orderHandler.assignOrderToEmployee(request, employeeId);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Mark order as ready and notify client",
+            description = "Marks an order as READY and sends a WhatsApp notification to the client with a security PIN. " +
+                    "Only orders in IN_PREPARATION status can be marked as ready. " +
+                    "The client must present this PIN to claim their order.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Order marked as ready and notification sent to client",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = OrderResponseDto.class))),
+            @ApiResponse(responseCode = "400",
+                    description = "Invalid input data or order is not in IN_PREPARATION status",
+                    content = @Content),
+            @ApiResponse(responseCode = "401",
+                    description = "Not authenticated",
+                    content = @Content),
+            @ApiResponse(responseCode = "403",
+                    description = "Not authorized - requires EMPLOYEE role",
+                    content = @Content),
+            @ApiResponse(responseCode = "404",
+                    description = "Order not found, employee not associated with restaurant, or client phone not found",
+                    content = @Content),
+            @ApiResponse(responseCode = "409",
+                    description = "Order does not belong to the employee's restaurant",
+                    content = @Content)
+    })
+    @PatchMapping("/ready")
+    public ResponseEntity<OrderResponseDto> markOrderAsReady(
+            @Valid @RequestBody MarkOrderReadyRequestDto request) {
+        Long employeeId = getAuthenticatedUserId();
+        OrderResponseDto response = orderHandler.markOrderAsReady(request, employeeId);
         return ResponseEntity.ok(response);
     }
 

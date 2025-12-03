@@ -2,6 +2,7 @@ package com.pragma.plazoleta.application.handler;
 
 import com.pragma.plazoleta.application.dto.request.AssignOrderRequestDto;
 import com.pragma.plazoleta.application.dto.request.CreateOrderRequestDto;
+import com.pragma.plazoleta.application.dto.request.MarkOrderReadyRequestDto;
 import com.pragma.plazoleta.application.dto.response.OrderItemResponseDto;
 import com.pragma.plazoleta.application.dto.response.OrderResponseDto;
 import com.pragma.plazoleta.application.dto.response.PagedResponse;
@@ -77,6 +78,12 @@ public class OrderHandler implements IOrderHandler {
     public OrderResponseDto assignOrderToEmployee(AssignOrderRequestDto request, Long employeeId) {
         Order assignedOrder = orderServicePort.assignOrderToEmployee(request.getOrderId(), employeeId);
         return buildOrderResponse(assignedOrder);
+    }
+
+    @Override
+    public OrderResponseDto markOrderAsReady(MarkOrderReadyRequestDto request, Long employeeId) {
+        Order readyOrder = orderServicePort.markOrderAsReady(request.getOrderId(), employeeId);
+        return buildOrderResponse(readyOrder);
     }
 
     private OrderResponseDto buildOrderResponse(Order order) {
