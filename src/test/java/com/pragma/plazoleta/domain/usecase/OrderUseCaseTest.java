@@ -23,6 +23,7 @@ import com.pragma.plazoleta.domain.spi.IEmployeeRestaurantPort;
 import com.pragma.plazoleta.domain.spi.INotificationPort;
 import com.pragma.plazoleta.domain.spi.IOrderPersistencePort;
 import com.pragma.plazoleta.domain.spi.IRestaurantPersistencePort;
+import com.pragma.plazoleta.domain.spi.ITraceabilityPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -71,6 +72,9 @@ class OrderUseCaseTest {
     @Mock
     private INotificationPort notificationPort;
 
+    @Mock
+    private ITraceabilityPort traceabilityPort;
+
     @InjectMocks
     private OrderUseCase orderUseCase;
 
@@ -94,10 +98,12 @@ class OrderUseCaseTest {
                 "https://example.com/logo.jpg",
                 5L
         );
-        restaurant.setId(RESTAURANT_ID);
-
         dish1 = createActiveDish(DISH_ID_1, "Hamburguesa Clásica", RESTAURANT_ID);
         dish2 = createActiveDish(DISH_ID_2, "Pizza Margherita", RESTAURANT_ID);
+
+        // Default mocks to avoid NPEs in traceability logic
+        org.mockito.Mockito.lenient().when(clientInfoPort.getClientEmailById(any())).thenReturn(Optional.of("client@test.com"));
+        org.mockito.Mockito.lenient().when(employeeRestaurantPort.getEmployeeEmailById(any())).thenReturn(Optional.of("employee@test.com"));
     }
 
     @Nested
