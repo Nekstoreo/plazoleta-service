@@ -21,7 +21,7 @@ public class SecurityConfiguration {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     private static final String ROLE_EMPLOYEE = "EMPLOYEE";
-    // La ruta de orders se obtiene desde propiedades para que sea configurable por entorno
+    private static final String ROLE_OWNER = "OWNER";
     @Value("${app.orders.path:/api/v1/orders}")
     private String ordersPath;
 
@@ -43,8 +43,9 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.POST, "/api/v1/restaurants").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/restaurants").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/v1/restaurants/*/dishes").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/dishes").hasRole("OWNER")
-                        .requestMatchers(HttpMethod.PATCH, "/api/v1/dishes/**").hasRole("OWNER")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/dishes").hasRole(ROLE_OWNER)
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/dishes/**").hasRole(ROLE_OWNER)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/efficiency/**").hasRole(ROLE_OWNER)
                         .requestMatchers(HttpMethod.POST, ordersPath).hasRole("CLIENT")
                         .requestMatchers(HttpMethod.GET, ordersPath).hasRole(ROLE_EMPLOYEE)
                         .requestMatchers(HttpMethod.PUT, ordersPath).hasRole(ROLE_EMPLOYEE)

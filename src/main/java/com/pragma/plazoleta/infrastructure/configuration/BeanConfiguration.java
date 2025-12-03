@@ -1,17 +1,12 @@
 package com.pragma.plazoleta.infrastructure.configuration;
 
 import com.pragma.plazoleta.domain.api.IDishServicePort;
+import com.pragma.plazoleta.domain.api.IEfficiencyServicePort;
 import com.pragma.plazoleta.domain.api.IOrderServicePort;
 import com.pragma.plazoleta.domain.api.IRestaurantServicePort;
-import com.pragma.plazoleta.domain.spi.IClientInfoPort;
-import com.pragma.plazoleta.domain.spi.IDishPersistencePort;
-import com.pragma.plazoleta.domain.spi.IEmployeeRestaurantPort;
-import com.pragma.plazoleta.domain.spi.INotificationPort;
-import com.pragma.plazoleta.domain.spi.IOrderPersistencePort;
-import com.pragma.plazoleta.domain.spi.IRestaurantPersistencePort;
-import com.pragma.plazoleta.domain.spi.ITraceabilityPort;
-import com.pragma.plazoleta.domain.spi.IUserValidationPort;
+import com.pragma.plazoleta.domain.spi.*;
 import com.pragma.plazoleta.domain.usecase.DishUseCase;
+import com.pragma.plazoleta.domain.usecase.EfficiencyUseCase;
 import com.pragma.plazoleta.domain.usecase.OrderUseCase;
 import com.pragma.plazoleta.domain.usecase.RestaurantUseCase;
 import org.springframework.context.annotation.Bean;
@@ -52,5 +47,12 @@ public class BeanConfiguration {
                 notificationPort,
                 traceabilityPort
         );
+    }
+
+    @Bean
+    public IEfficiencyServicePort efficiencyServicePort(
+            ITraceabilityPort traceabilityPort,
+            IRestaurantPersistencePort restaurantPersistencePort) {
+        return new EfficiencyUseCase(traceabilityPort, restaurantPersistencePort);
     }
 }
