@@ -574,6 +574,46 @@
               "description": "Assigns a PENDING order to the authenticated employee and changes its status to IN_PREPARATION. The order must belong to the employee's restaurant."
             },
             "response": []
+          },
+          {
+            "name": "Mark Order as Ready - Send SMS to Client",
+            "request": {
+              "auth": {
+                "type": "bearer",
+                "bearer": [
+                  {
+                    "key": "token",
+                    "value": "{{employeeToken}}",
+                    "type": "string"
+                  }
+                ]
+              },
+              "method": "PATCH",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n  \"orderId\": 1\n}"
+              },
+              "url": {
+                "raw": "{{baseUrl}}/api/v1/orders/ready",
+                "host": [
+                  "{{baseUrl}}"
+                ],
+                "path": [
+                  "api",
+                  "v1",
+                  "orders",
+                  "ready"
+                ]
+              },
+              "description": "Marks an order as READY and sends an SMS notification to the client with a security PIN (6 digits). The client must present this PIN to claim their order. Only IN_PREPARATION orders can be marked as ready. Integrates with mensajeria-service to send SMS via Twilio."
+            },
+            "response": []
           }
         ]
         }
