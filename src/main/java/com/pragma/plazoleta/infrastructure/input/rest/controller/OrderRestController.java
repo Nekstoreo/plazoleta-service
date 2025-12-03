@@ -31,6 +31,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.pragma.plazoleta.application.dto.response.TraceabilityResponseDto;
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/orders")
 @Tag(name = "Orders", description = "Order management API for clients and employees")
@@ -240,6 +243,33 @@ public class OrderRestController {
         Long clientId = getAuthenticatedUserId();
         orderHandler.cancelOrder(orderId, clientId);
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Get order traceability",
+            description = "Retrieves the history of status changes for a specific order. " +
+                    "Only the client who created the order can access its traceability.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Traceability retrieved successfully",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = TraceabilityResponseDto.class))),
+            @ApiResponse(responseCode = "401",
+                    description = "Not authenticated",
+                    content = @Content),
+            @ApiResponse(responseCode = "403",
+                    description = "Not authorized - requires CLIENT role or user is not the owner",
+                    content = @Content),
+            @ApiResponse(responseCode = "404",
+                    description = "Order not found",
+                    content = @Content)
+    })
+    @GetMapping("/{orderId}/traceability")
+    public ResponseEntity<List<TraceabilityResponseDto>> getTraceabilityByOrderId(
+            @Parameter(description = "ID of the order", required = true)
+            @PathVariable Long orderId) {
+        Long clientId = getAuthenticatedUserId();
+        List<TraceabilityResponseDto> response = orderHandler.getTraceabilityByOrderId(orderId, clientId);
+        return ResponseEntity.ok(response);
     }
 
     private Long getAuthenticatedUserId() {

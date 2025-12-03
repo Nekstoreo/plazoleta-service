@@ -8,6 +8,8 @@ import com.pragma.plazoleta.application.dto.response.OrderItemResponseDto;
 import com.pragma.plazoleta.application.dto.response.OrderResponseDto;
 import com.pragma.plazoleta.application.dto.response.PagedResponse;
 import com.pragma.plazoleta.application.mapper.OrderDtoMapper;
+import com.pragma.plazoleta.application.dto.response.TraceabilityResponseDto;
+import com.pragma.plazoleta.application.mapper.TraceabilityDtoMapper;
 import com.pragma.plazoleta.domain.api.IOrderServicePort;
 import com.pragma.plazoleta.domain.model.Order;
 import com.pragma.plazoleta.domain.model.OrderItem;
@@ -30,15 +32,18 @@ public class OrderHandler implements IOrderHandler {
     private final IRestaurantPersistencePort restaurantPersistencePort;
     private final IDishPersistencePort dishPersistencePort;
     private final OrderDtoMapper orderDtoMapper;
+    private final TraceabilityDtoMapper traceabilityDtoMapper;
 
     public OrderHandler(IOrderServicePort orderServicePort,
                         IRestaurantPersistencePort restaurantPersistencePort,
                         IDishPersistencePort dishPersistencePort,
-                        OrderDtoMapper orderDtoMapper) {
+                        OrderDtoMapper orderDtoMapper,
+                        TraceabilityDtoMapper traceabilityDtoMapper) {
         this.orderServicePort = orderServicePort;
         this.restaurantPersistencePort = restaurantPersistencePort;
         this.dishPersistencePort = dishPersistencePort;
         this.orderDtoMapper = orderDtoMapper;
+        this.traceabilityDtoMapper = traceabilityDtoMapper;
     }
 
     @Override
@@ -96,6 +101,11 @@ public class OrderHandler implements IOrderHandler {
     @Override
     public void cancelOrder(Long orderId, Long clientId) {
         orderServicePort.cancelOrder(orderId, clientId);
+    }
+
+    @Override
+    public List<TraceabilityResponseDto> getTraceabilityByOrderId(Long orderId, Long clientId) {
+        return traceabilityDtoMapper.toResponseList(orderServicePort.getTraceabilityByOrderId(orderId, clientId));
     }
 
     private OrderResponseDto buildOrderResponse(Order order) {

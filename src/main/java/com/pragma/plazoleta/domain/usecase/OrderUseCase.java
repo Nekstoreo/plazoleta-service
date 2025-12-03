@@ -8,7 +8,6 @@ import com.pragma.plazoleta.domain.exception.DishNotFoundException;
 import com.pragma.plazoleta.domain.exception.DishNotFromRestaurantException;
 import com.pragma.plazoleta.domain.exception.EmptyOrderException;
 import com.pragma.plazoleta.domain.exception.EmployeeNotAssociatedWithRestaurantException;
-import com.pragma.plazoleta.domain.exception.EmployeeNotAssociatedWithRestaurantException;
 import com.pragma.plazoleta.domain.exception.InvalidOrderStatusException;
 import com.pragma.plazoleta.domain.exception.InvalidQuantityException;
 import com.pragma.plazoleta.domain.exception.InvalidSecurityPinException;
@@ -24,12 +23,14 @@ import com.pragma.plazoleta.domain.model.OrderItem;
 import com.pragma.plazoleta.domain.model.OrderStatus;
 import com.pragma.plazoleta.domain.model.PagedResult;
 import com.pragma.plazoleta.domain.model.Restaurant;
+import com.pragma.plazoleta.domain.model.Traceability;
 import com.pragma.plazoleta.domain.spi.IClientInfoPort;
 import com.pragma.plazoleta.domain.spi.IDishPersistencePort;
 import com.pragma.plazoleta.domain.spi.IEmployeeRestaurantPort;
 import com.pragma.plazoleta.domain.spi.INotificationPort;
 import com.pragma.plazoleta.domain.spi.IOrderPersistencePort;
 import com.pragma.plazoleta.domain.spi.IRestaurantPersistencePort;
+import com.pragma.plazoleta.domain.spi.ITraceabilityPort;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
@@ -47,19 +48,22 @@ public class OrderUseCase implements IOrderServicePort {
     private final IEmployeeRestaurantPort employeeRestaurantPort;
     private final IClientInfoPort clientInfoPort;
     private final INotificationPort notificationPort;
+    private final ITraceabilityPort traceabilityPort;
 
     public OrderUseCase(IOrderPersistencePort orderPersistencePort,
             IRestaurantPersistencePort restaurantPersistencePort,
             IDishPersistencePort dishPersistencePort,
             IEmployeeRestaurantPort employeeRestaurantPort,
             IClientInfoPort clientInfoPort,
-            INotificationPort notificationPort) {
+            INotificationPort notificationPort,
+            ITraceabilityPort traceabilityPort) {
         this.orderPersistencePort = orderPersistencePort;
         this.restaurantPersistencePort = restaurantPersistencePort;
         this.dishPersistencePort = dishPersistencePort;
         this.employeeRestaurantPort = employeeRestaurantPort;
         this.clientInfoPort = clientInfoPort;
         this.notificationPort = notificationPort;
+        this.traceabilityPort = traceabilityPort;
     }
 
     @Override
@@ -73,7 +77,9 @@ public class OrderUseCase implements IOrderServicePort {
         order.setCreatedAt(LocalDateTime.now());
         order.setUpdatedAt(LocalDateTime.now());
 
-        return orderPersistencePort.saveOrder(order);
+        Order savedOrder = orderPersistencePort.saveOrder(order);
+        saveTraceability(savedOrder, null, OrderStatus.PENDING, null);
+        return savedOrder;
     }
 
     @Override
@@ -95,7 +101,9 @@ public class OrderUseCase implements IOrderServicePort {
         order.setStatus(OrderStatus.IN_PREPARATION);
         order.setUpdatedAt(LocalDateTime.now());
 
-        return orderPersistencePort.saveOrder(order);
+        Order savedOrder = orderPersistencePort.saveOrder(order);
+        saveTraceability(savedOrder, OrderStatus.PENDING, OrderStatus.IN_PREPARATION, employeeId);
+        return savedOrder;
     }
 
     @Override
@@ -114,6 +122,7 @@ public class OrderUseCase implements IOrderServicePort {
 
         Order savedOrder = orderPersistencePort.saveOrder(order);
 
+        saveTraceability(savedOrder, OrderStatus.IN_PREPARATION, OrderStatus.READY, employeeId);
         sendOrderReadyNotification(savedOrder);
 
         return savedOrder;
@@ -132,7 +141,9 @@ public class OrderUseCase implements IOrderServicePort {
         order.setStatus(OrderStatus.DELIVERED);
         order.setUpdatedAt(LocalDateTime.now());
 
-        return orderPersistencePort.saveOrder(order);
+        Order savedOrder = orderPersistencePort.saveOrder(order);
+        saveTraceability(savedOrder, OrderStatus.READY, OrderStatus.DELIVERED, employeeId);
+        return savedOrder;
     }
 
     @Override
@@ -151,6 +162,34 @@ public class OrderUseCase implements IOrderServicePort {
         order.setStatus(OrderStatus.CANCELLED);
         order.setUpdatedAt(LocalDateTime.now());
         orderPersistencePort.saveOrder(order);
+        
+        saveTraceability(order, OrderStatus.PENDING, OrderStatus.CANCELLED, null);
+    }
+
+    @Override
+    public List<Traceability> getTraceabilityByOrderId(Long orderId, Long clientId) {
+        Order order = orderPersistencePort.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
+
+        if (!order.getClientId().equals(clientId)) {
+            throw new UserNotOwnerException("User is not the owner of the order");
+        }
+
+        return traceabilityPort.getTraceabilityByOrderId(orderId);
+    }
+
+    private void saveTraceability(Order order, OrderStatus previousStatus, OrderStatus newStatus, Long employeeId) {
+        Traceability traceability = new Traceability();
+        traceability.setOrderId(order.getId());
+        traceability.setClientId(order.getClientId());
+        traceability.setClientEmail(clientInfoPort.getClientEmailById(order.getClientId()).orElse(null));
+        traceability.setPreviousStatus(previousStatus != null ? previousStatus.name() : null);
+        traceability.setNewStatus(newStatus.name());
+        traceability.setEmployeeId(employeeId);
+        if (employeeId != null) {
+            traceability.setEmployeeEmail(employeeRestaurantPort.getEmployeeEmailById(employeeId).orElse(null));
+        }
+        traceabilityPort.saveTraceability(traceability);
     }
 
     private void sendOrderReadyNotification(Order order) {
