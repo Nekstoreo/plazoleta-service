@@ -1240,11 +1240,71 @@ class OrderUseCaseTest {
             Order result = orderUseCase.markOrderAsReady(ORDER_ID, EMPLOYEE_ID);
 
             verify(notificationPort).sendOrderReadyNotification(
-                    eq(CLIENT_PHONE),
-                    eq(ORDER_ID.toString()),
-                    eq(result.getSecurityPin()),
-                    eq(restaurant.getName())
+                    CLIENT_PHONE,
+                    ORDER_ID.toString(),
+                    result.getSecurityPin(),
+                    restaurant.getName()
             );
+        }
+    }
+
+    @Nested
+    @DisplayName("Cancel Order")
+    class CancelOrderTests {
+
+        private static final Long ORDER_ID = 300L;
+
+        @Test
+        @DisplayName("Should cancel order successfully when order is PENDING and user is owner")
+        void shouldCancelOrderSuccessfully() {
+            Order pendingOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.PENDING);
+
+            when(orderPersistencePort.findById(ORDER_ID)).thenReturn(Optional.of(pendingOrder));
+            when(orderPersistencePort.saveOrder(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+            orderUseCase.cancelOrder(ORDER_ID, CLIENT_ID);
+
+            assertThat(pendingOrder.getStatus()).isEqualTo(OrderStatus.CANCELLED);
+            verify(orderPersistencePort).saveOrder(pendingOrder);
+        }
+
+        @Test
+        @DisplayName("Should throw OrderNotFoundException when order does not exist")
+        void shouldThrowOrderNotFoundException() {
+            when(orderPersistencePort.findById(ORDER_ID)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> orderUseCase.cancelOrder(ORDER_ID, CLIENT_ID))
+                    .isInstanceOf(com.pragma.plazoleta.domain.exception.OrderNotFoundException.class);
+
+            verify(orderPersistencePort, never()).saveOrder(any());
+        }
+
+        @Test
+        @DisplayName("Should throw UserNotOwnerException when user is not the owner")
+        void shouldThrowUserNotOwnerException() {
+            Order pendingOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.PENDING);
+            Long otherClientId = 999L;
+
+            when(orderPersistencePort.findById(ORDER_ID)).thenReturn(Optional.of(pendingOrder));
+
+            assertThatThrownBy(() -> orderUseCase.cancelOrder(ORDER_ID, otherClientId))
+                    .isInstanceOf(com.pragma.plazoleta.domain.exception.UserNotOwnerException.class);
+
+            verify(orderPersistencePort, never()).saveOrder(any());
+        }
+
+        @Test
+        @DisplayName("Should throw OrderNotCancellableException when order is not PENDING")
+        void shouldThrowOrderNotCancellableException() {
+            Order inPreparationOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.IN_PREPARATION);
+
+            when(orderPersistencePort.findById(ORDER_ID)).thenReturn(Optional.of(inPreparationOrder));
+
+            assertThatThrownBy(() -> orderUseCase.cancelOrder(ORDER_ID, CLIENT_ID))
+                    .isInstanceOf(com.pragma.plazoleta.domain.exception.OrderNotCancellableException.class)
+                    .hasMessageContaining("Lo sentimos, tu pedido ya está en preparación y no puede cancelarse");
+
+            verify(orderPersistencePort, never()).saveOrder(any());
         }
     }
 }
