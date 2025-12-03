@@ -688,6 +688,77 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Efficiency",
+      "item": [
+        {
+          "name": "Get Orders Efficiency",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ownerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/efficiency/restaurant/1/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "efficiency",
+                "restaurant",
+                "1",
+                "orders"
+              ]
+            },
+            "description": "Retrieves the efficiency metrics for all completed orders of a specific restaurant. Shows the time between order creation (PENDING) and completion (DELIVERED or CANCELLED). Only the restaurant owner can access this endpoint.\n\nResponse includes:\n- orderId: The order identifier\n- startTime: When the order was created (PENDING status)\n- endTime: When the order was completed (DELIVERED/CANCELLED)\n- durationInMinutes: Total time taken to process the order\n- finalStatus: Final status of the order (DELIVERED or CANCELLED)\n- employeeId: ID of the employee who handled the order"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Employee Ranking",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ownerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/efficiency/restaurant/1/employees",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "efficiency",
+                "restaurant",
+                "1",
+                "employees"
+              ]
+            },
+            "description": "Retrieves the ranking of employees by average order completion time for a specific restaurant. Employees are ranked from fastest (position 1) to slowest. Only the restaurant owner can access this endpoint.\n\nResponse includes:\n- employeeId: The employee identifier\n- averageDurationInMinutes: Average time to complete orders\n- totalOrdersCompleted: Number of orders completed by the employee\n- rankingPosition: Employee's position in the ranking (1 = fastest)"
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [
