@@ -12,7 +12,9 @@ import com.pragma.plazoleta.domain.exception.EmployeeNotAssociatedWithRestaurant
 import com.pragma.plazoleta.domain.exception.InvalidOrderStatusException;
 import com.pragma.plazoleta.domain.exception.InvalidQuantityException;
 import com.pragma.plazoleta.domain.exception.InvalidSecurityPinException;
+import com.pragma.plazoleta.domain.exception.OrderNotCancellableException;
 import com.pragma.plazoleta.domain.exception.OrderNotFoundException;
+import com.pragma.plazoleta.domain.exception.UserNotOwnerException;
 import com.pragma.plazoleta.domain.exception.OrderNotFromEmployeeRestaurantException;
 import com.pragma.plazoleta.domain.exception.OrderNotInPreparationException;
 import com.pragma.plazoleta.domain.exception.RestaurantNotFoundException;
@@ -131,6 +133,24 @@ public class OrderUseCase implements IOrderServicePort {
         order.setUpdatedAt(LocalDateTime.now());
 
         return orderPersistencePort.saveOrder(order);
+    }
+
+    @Override
+    public void cancelOrder(Long orderId, Long clientId) {
+        Order order = orderPersistencePort.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
+
+        if (!order.getClientId().equals(clientId)) {
+            throw new UserNotOwnerException("User is not the owner of the order");
+        }
+
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new OrderNotCancellableException("Lo sentimos, tu pedido ya está en preparación y no puede cancelarse");
+        }
+
+        order.setStatus(OrderStatus.CANCELLED);
+        order.setUpdatedAt(LocalDateTime.now());
+        orderPersistencePort.saveOrder(order);
     }
 
     private void sendOrderReadyNotification(Order order) {
