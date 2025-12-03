@@ -3,8 +3,10 @@ package com.pragma.plazoleta.infrastructure.configuration;
 import com.pragma.plazoleta.domain.api.IDishServicePort;
 import com.pragma.plazoleta.domain.api.IOrderServicePort;
 import com.pragma.plazoleta.domain.api.IRestaurantServicePort;
+import com.pragma.plazoleta.domain.spi.IClientInfoPort;
 import com.pragma.plazoleta.domain.spi.IDishPersistencePort;
 import com.pragma.plazoleta.domain.spi.IEmployeeRestaurantPort;
+import com.pragma.plazoleta.domain.spi.INotificationPort;
 import com.pragma.plazoleta.domain.spi.IOrderPersistencePort;
 import com.pragma.plazoleta.domain.spi.IRestaurantPersistencePort;
 import com.pragma.plazoleta.domain.spi.IUserValidationPort;
@@ -36,7 +38,16 @@ public class BeanConfiguration {
             IOrderPersistencePort orderPersistencePort,
             IRestaurantPersistencePort restaurantPersistencePort,
             IDishPersistencePort dishPersistencePort,
-            IEmployeeRestaurantPort employeeRestaurantPort) {
-        return new OrderUseCase(orderPersistencePort, restaurantPersistencePort, dishPersistencePort, employeeRestaurantPort);
+            IEmployeeRestaurantPort employeeRestaurantPort,
+            IClientInfoPort clientInfoPort,
+            INotificationPort notificationPort) {
+        return new OrderUseCase(
+                orderPersistencePort,
+                restaurantPersistencePort,
+                dishPersistencePort,
+                employeeRestaurantPort,
+                clientInfoPort,
+                notificationPort
+        );
     }
 }
