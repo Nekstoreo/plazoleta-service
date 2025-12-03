@@ -27,7 +27,9 @@ public class GlobalExceptionHandler {
             EmptyOrderException.class,
             InvalidQuantityException.class,
             DishNotFromRestaurantException.class,
-            DishNotActiveException.class
+            DishNotActiveException.class,
+            InvalidOrderStatusException.class,
+            OrderNotInPreparationException.class
     })
     public ResponseEntity<ErrorResponse> handleValidationExceptions(
             RuntimeException ex, HttpServletRequest request) {
@@ -45,7 +47,9 @@ public class GlobalExceptionHandler {
             OwnerNotFoundException.class,
             RestaurantNotFoundException.class,
             DishNotFoundException.class,
-            EmployeeNotAssociatedWithRestaurantException.class
+            EmployeeNotAssociatedWithRestaurantException.class,
+            OrderNotFoundException.class,
+            ClientPhoneNotFoundException.class
     })
     public ResponseEntity<ErrorResponse> handleNotFoundException(
             RuntimeException ex, HttpServletRequest request) {
