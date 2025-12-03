@@ -654,6 +654,38 @@
             "description": "Marks an order as DELIVERED. The employee must provide the security PIN sent to the client. Only READY orders can be marked as delivered."
           },
           "response": []
+        },
+        {
+          "name": "Cancel Order",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/orders/1/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "orders",
+                "1",
+                "cancel"
+              ]
+            },
+            "description": "Cancels an order. Only the client who created the order can cancel it. Only orders in PENDING status can be cancelled."
+          },
+          "response": []
         }
       ]
     }
