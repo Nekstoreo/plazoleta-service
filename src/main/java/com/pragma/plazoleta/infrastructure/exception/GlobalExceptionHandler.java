@@ -16,138 +16,131 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    private static final String BAD_REQUEST = "Bad Request";
+        private static final String BAD_REQUEST = "Bad Request";
 
-    @ExceptionHandler({
-            InvalidRestaurantNameException.class,
-            InvalidNitException.class,
-            InvalidPhoneException.class,
-            InvalidPriceException.class,
-            InvalidActiveStatusException.class,
-            EmptyOrderException.class,
-            InvalidQuantityException.class,
-            DishNotFromRestaurantException.class,
-            DishNotActiveException.class,
-            InvalidOrderStatusException.class,
-            OrderNotInPreparationException.class
-    })
-    public ResponseEntity<ErrorResponse> handleValidationExceptions(
-            RuntimeException ex, HttpServletRequest request) {
-        ErrorResponse error = new ErrorResponse(
-                LocalDateTime.now(),
-                HttpStatus.BAD_REQUEST.value(),
-                BAD_REQUEST,
-                ex.getMessage(),
-                request.getRequestURI()
-        );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
-    }
+        @ExceptionHandler({
+                        InvalidRestaurantNameException.class,
+                        InvalidNitException.class,
+                        InvalidPhoneException.class,
+                        InvalidPriceException.class,
+                        InvalidActiveStatusException.class,
+                        EmptyOrderException.class,
+                        InvalidQuantityException.class,
+                        DishNotFromRestaurantException.class,
+                        DishNotActiveException.class,
+                        InvalidOrderStatusException.class,
+                        OrderNotInPreparationException.class,
+                        InvalidSecurityPinException.class
+        })
+        public ResponseEntity<ErrorResponse> handleValidationExceptions(
+                        RuntimeException ex, HttpServletRequest request) {
+                ErrorResponse error = new ErrorResponse(
+                                LocalDateTime.now(),
+                                HttpStatus.BAD_REQUEST.value(),
+                                BAD_REQUEST,
+                                ex.getMessage(),
+                                request.getRequestURI());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
 
-    @ExceptionHandler({
-            OwnerNotFoundException.class,
-            RestaurantNotFoundException.class,
-            DishNotFoundException.class,
-            EmployeeNotAssociatedWithRestaurantException.class,
-            OrderNotFoundException.class,
-            ClientPhoneNotFoundException.class
-    })
-    public ResponseEntity<ErrorResponse> handleNotFoundException(
-            RuntimeException ex, HttpServletRequest request) {
-        ErrorResponse error = new ErrorResponse(
-                LocalDateTime.now(),
-                HttpStatus.NOT_FOUND.value(),
-                "Not Found",
-                ex.getMessage(),
-                request.getRequestURI()
-        );
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-    }
+        @ExceptionHandler({
+                        OwnerNotFoundException.class,
+                        RestaurantNotFoundException.class,
+                        DishNotFoundException.class,
+                        EmployeeNotAssociatedWithRestaurantException.class,
+                        OrderNotFoundException.class,
+                        ClientPhoneNotFoundException.class
+        })
+        public ResponseEntity<ErrorResponse> handleNotFoundException(
+                        RuntimeException ex, HttpServletRequest request) {
+                ErrorResponse error = new ErrorResponse(
+                                LocalDateTime.now(),
+                                HttpStatus.NOT_FOUND.value(),
+                                "Not Found",
+                                ex.getMessage(),
+                                request.getRequestURI());
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+        }
 
-    @ExceptionHandler({
-            UserNotOwnerException.class,
-            UserNotRestaurantOwnerException.class
-    })
-    public ResponseEntity<ErrorResponse> handleForbiddenException(
-            RuntimeException ex, HttpServletRequest request) {
-        ErrorResponse error = new ErrorResponse(
-                LocalDateTime.now(),
-                HttpStatus.FORBIDDEN.value(),
-                "Forbidden",
-                ex.getMessage(),
-                request.getRequestURI()
-        );
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
-    }
+        @ExceptionHandler({
+                        UserNotOwnerException.class,
+                        UserNotRestaurantOwnerException.class
+        })
+        public ResponseEntity<ErrorResponse> handleForbiddenException(
+                        RuntimeException ex, HttpServletRequest request) {
+                ErrorResponse error = new ErrorResponse(
+                                LocalDateTime.now(),
+                                HttpStatus.FORBIDDEN.value(),
+                                "Forbidden",
+                                ex.getMessage(),
+                                request.getRequestURI());
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+        }
 
-    @ExceptionHandler({
-            RestaurantAlreadyExistsException.class,
-            ClientHasActiveOrderException.class
-    })
-    public ResponseEntity<ErrorResponse> handleConflictException(
-            RuntimeException ex, HttpServletRequest request) {
-        ErrorResponse error = new ErrorResponse(
-                LocalDateTime.now(),
-                HttpStatus.CONFLICT.value(),
-                "Conflict",
-                ex.getMessage(),
-                request.getRequestURI()
-        );
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
-    }
+        @ExceptionHandler({
+                        RestaurantAlreadyExistsException.class,
+                        ClientHasActiveOrderException.class
+        })
+        public ResponseEntity<ErrorResponse> handleConflictException(
+                        RuntimeException ex, HttpServletRequest request) {
+                ErrorResponse error = new ErrorResponse(
+                                LocalDateTime.now(),
+                                HttpStatus.CONFLICT.value(),
+                                "Conflict",
+                                ex.getMessage(),
+                                request.getRequestURI());
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+        }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
-            IllegalArgumentException ex, HttpServletRequest request) {
-        ErrorResponse error = new ErrorResponse(
-                LocalDateTime.now(),
-                HttpStatus.BAD_REQUEST.value(),
-                BAD_REQUEST,
-                ex.getMessage(),
-                request.getRequestURI()
-        );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
-    }
+        @ExceptionHandler(IllegalArgumentException.class)
+        public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
+                        IllegalArgumentException ex, HttpServletRequest request) {
+                ErrorResponse error = new ErrorResponse(
+                                LocalDateTime.now(),
+                                HttpStatus.BAD_REQUEST.value(),
+                                BAD_REQUEST,
+                                ex.getMessage(),
+                                request.getRequestURI());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(
-            MethodArgumentNotValidException ex, HttpServletRequest request) {
-        String message = ex.getBindingResult().getFieldErrors().stream()
-                .map(FieldError::getDefaultMessage)
-                .collect(Collectors.joining(", "));
+        @ExceptionHandler(MethodArgumentNotValidException.class)
+        public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(
+                        MethodArgumentNotValidException ex, HttpServletRequest request) {
+                String message = ex.getBindingResult().getFieldErrors().stream()
+                                .map(FieldError::getDefaultMessage)
+                                .collect(Collectors.joining(", "));
 
-        ErrorResponse error = new ErrorResponse(
-                LocalDateTime.now(),
-                HttpStatus.BAD_REQUEST.value(),
-                BAD_REQUEST,
-                message,
-                request.getRequestURI()
-        );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
-    }
+                ErrorResponse error = new ErrorResponse(
+                                LocalDateTime.now(),
+                                HttpStatus.BAD_REQUEST.value(),
+                                BAD_REQUEST,
+                                message,
+                                request.getRequestURI());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
 
-    @ExceptionHandler(MissingRequestHeaderException.class)
-    public ResponseEntity<ErrorResponse> handleMissingRequestHeaderException(
-            MissingRequestHeaderException ex, HttpServletRequest request) {
-        ErrorResponse error = new ErrorResponse(
-                LocalDateTime.now(),
-                HttpStatus.BAD_REQUEST.value(),
-                BAD_REQUEST,
-                "Required header '" + ex.getHeaderName() + "' is missing",
-                request.getRequestURI()
-        );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
-    }
+        @ExceptionHandler(MissingRequestHeaderException.class)
+        public ResponseEntity<ErrorResponse> handleMissingRequestHeaderException(
+                        MissingRequestHeaderException ex, HttpServletRequest request) {
+                ErrorResponse error = new ErrorResponse(
+                                LocalDateTime.now(),
+                                HttpStatus.BAD_REQUEST.value(),
+                                BAD_REQUEST,
+                                "Required header '" + ex.getHeaderName() + "' is missing",
+                                request.getRequestURI());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGenericException(
-            Exception ex, HttpServletRequest request) {
-        ErrorResponse error = new ErrorResponse(
-                LocalDateTime.now(),
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "Internal Server Error",
-                "An unexpected error occurred",
-                request.getRequestURI()
-        );
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
-    }
+        @ExceptionHandler(Exception.class)
+        public ResponseEntity<ErrorResponse> handleGenericException(
+                        Exception ex, HttpServletRequest request) {
+                ErrorResponse error = new ErrorResponse(
+                                LocalDateTime.now(),
+                                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                                "Internal Server Error",
+                                "An unexpected error occurred",
+                                request.getRequestURI());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
 }

@@ -2,6 +2,7 @@ package com.pragma.plazoleta.infrastructure.input.rest.controller;
 
 import com.pragma.plazoleta.application.dto.request.AssignOrderRequestDto;
 import com.pragma.plazoleta.application.dto.request.CreateOrderRequestDto;
+import com.pragma.plazoleta.application.dto.request.DeliverOrderRequestDto;
 import com.pragma.plazoleta.application.dto.request.MarkOrderReadyRequestDto;
 import com.pragma.plazoleta.application.dto.response.OrderResponseDto;
 import com.pragma.plazoleta.application.dto.response.PagedResponse;
@@ -174,6 +175,39 @@ public class OrderRestController {
             @Valid @RequestBody MarkOrderReadyRequestDto request) {
         Long employeeId = getAuthenticatedUserId();
         OrderResponseDto response = orderHandler.markOrderAsReady(request, employeeId);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Mark order as delivered",
+            description = "Marks an order as DELIVERED. " +
+                    "Only orders in READY status can be marked as delivered. " +
+                    "The employee must provide the security PIN sent to the client.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Order marked as delivered successfully",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = OrderResponseDto.class))),
+            @ApiResponse(responseCode = "400",
+                    description = "Invalid input data, invalid order status, or invalid security PIN",
+                    content = @Content),
+            @ApiResponse(responseCode = "401",
+                    description = "Not authenticated",
+                    content = @Content),
+            @ApiResponse(responseCode = "403",
+                    description = "Not authorized - requires EMPLOYEE role",
+                    content = @Content),
+            @ApiResponse(responseCode = "404",
+                    description = "Order not found or employee not associated with restaurant",
+                    content = @Content),
+            @ApiResponse(responseCode = "409",
+                    description = "Order does not belong to the employee's restaurant",
+                    content = @Content)
+    })
+    @PatchMapping("/deliver")
+    public ResponseEntity<OrderResponseDto> deliverOrder(
+            @Valid @RequestBody DeliverOrderRequestDto request) {
+        Long employeeId = getAuthenticatedUserId();
+        OrderResponseDto response = orderHandler.deliverOrder(request, employeeId);
         return ResponseEntity.ok(response);
     }
 
