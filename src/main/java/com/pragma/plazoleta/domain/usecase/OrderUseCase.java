@@ -8,8 +8,10 @@ import com.pragma.plazoleta.domain.exception.DishNotFoundException;
 import com.pragma.plazoleta.domain.exception.DishNotFromRestaurantException;
 import com.pragma.plazoleta.domain.exception.EmptyOrderException;
 import com.pragma.plazoleta.domain.exception.EmployeeNotAssociatedWithRestaurantException;
+import com.pragma.plazoleta.domain.exception.EmployeeNotAssociatedWithRestaurantException;
 import com.pragma.plazoleta.domain.exception.InvalidOrderStatusException;
 import com.pragma.plazoleta.domain.exception.InvalidQuantityException;
+import com.pragma.plazoleta.domain.exception.InvalidSecurityPinException;
 import com.pragma.plazoleta.domain.exception.OrderNotFoundException;
 import com.pragma.plazoleta.domain.exception.OrderNotFromEmployeeRestaurantException;
 import com.pragma.plazoleta.domain.exception.OrderNotInPreparationException;
@@ -45,11 +47,11 @@ public class OrderUseCase implements IOrderServicePort {
     private final INotificationPort notificationPort;
 
     public OrderUseCase(IOrderPersistencePort orderPersistencePort,
-                        IRestaurantPersistencePort restaurantPersistencePort,
-                        IDishPersistencePort dishPersistencePort,
-                        IEmployeeRestaurantPort employeeRestaurantPort,
-                        IClientInfoPort clientInfoPort,
-                        INotificationPort notificationPort) {
+            IRestaurantPersistencePort restaurantPersistencePort,
+            IDishPersistencePort dishPersistencePort,
+            IEmployeeRestaurantPort employeeRestaurantPort,
+            IClientInfoPort clientInfoPort,
+            INotificationPort notificationPort) {
         this.orderPersistencePort = orderPersistencePort;
         this.restaurantPersistencePort = restaurantPersistencePort;
         this.dishPersistencePort = dishPersistencePort;
@@ -115,6 +117,22 @@ public class OrderUseCase implements IOrderServicePort {
         return savedOrder;
     }
 
+    @Override
+    public Order markOrderAsDelivered(Long orderId, Long employeeId, String securityPin) {
+        Long restaurantId = getEmployeeRestaurantId(employeeId);
+        Order order = orderPersistencePort.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
+
+        validateOrderBelongsToRestaurant(order, restaurantId);
+        validateOrderIsReady(order);
+        validateSecurityPin(order, securityPin);
+
+        order.setStatus(OrderStatus.DELIVERED);
+        order.setUpdatedAt(LocalDateTime.now());
+
+        return orderPersistencePort.saveOrder(order);
+    }
+
     private void sendOrderReadyNotification(Order order) {
         String clientPhone = clientInfoPort.getClientPhoneById(order.getClientId())
                 .orElseThrow(() -> new ClientPhoneNotFoundException(order.getClientId()));
@@ -128,8 +146,7 @@ public class OrderUseCase implements IOrderServicePort {
                 clientPhone,
                 order.getId().toString(),
                 order.getSecurityPin(),
-                restaurant.getName()
-        );
+                restaurant.getName());
     }
 
     private String generateSecurityPin() {
@@ -155,7 +172,21 @@ public class OrderUseCase implements IOrderServicePort {
 
     private void validateOrderIsPending(Order order) {
         if (order.getStatus() != OrderStatus.PENDING) {
-            throw new InvalidOrderStatusException(order.getId(), order.getStatus().toString());
+            throw new InvalidOrderStatusException("Cannot assign order with id " + order.getId() + " because it is in "
+                    + order.getStatus() + " status. Only PENDING orders can be assigned.");
+        }
+    }
+
+    private void validateOrderIsReady(Order order) {
+        if (order.getStatus() != OrderStatus.READY) {
+            throw new InvalidOrderStatusException("Cannot deliver order with id " + order.getId() + " because it is in "
+                    + order.getStatus() + " status. Only READY orders can be delivered.");
+        }
+    }
+
+    private void validateSecurityPin(Order order, String securityPin) {
+        if (order.getSecurityPin() == null || !order.getSecurityPin().equals(securityPin)) {
+            throw new InvalidSecurityPinException("The security PIN provided does not match the order's PIN.");
         }
     }
 
@@ -213,8 +244,8 @@ public class OrderUseCase implements IOrderServicePort {
         }
         // E.164 format: +[1-9]{1}[0-9]{1,14}
         if (!phoneNumber.matches("^\\+[1-9]\\d{1,14}$")) {
-            throw new IllegalArgumentException("Phone number must be in E.164 format (e.g., +573001234567). Received: " + phoneNumber);
+            throw new IllegalArgumentException(
+                    "Phone number must be in E.164 format (e.g., +573001234567). Received: " + phoneNumber);
         }
     }
 }
-

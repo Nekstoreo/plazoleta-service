@@ -7,6 +7,6 @@ public class InvalidOrderStatusException extends RuntimeException {
     }
 
     public InvalidOrderStatusException(Long orderId, String currentStatus) {
-        super("Cannot assign order with id " + orderId + " because it is in " + currentStatus + " status. Only PENDING orders can be assigned.");
+        super("Order with id " + orderId + " is in invalid status: " + currentStatus);
     }
 }
