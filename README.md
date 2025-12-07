@@ -5,3 +5,7 @@ Microservicio principal encargado de la gestión de restaurantes, platos y pedid
 ## Puerto
 
 - **8082**
+
+## Documentación
+
+- Más detalles técnicos en: [Documentación técnica](./docs/plazoleta-service-technical-documentation.md)
