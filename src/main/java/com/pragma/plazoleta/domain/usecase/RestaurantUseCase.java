@@ -34,18 +34,21 @@ public class RestaurantUseCase implements IRestaurantServicePort {
 
     @Override
     public Restaurant createRestaurant(Restaurant restaurant) {
-        validateName(restaurant.getName());
-        validateNit(restaurant.getNit());
-        validatePhone(restaurant.getPhone());
-        validateOwner(restaurant.getOwnerId());
-        validateRestaurantDoesNotExist(restaurant.getNit());
-
+        validateRestaurantData(restaurant);
         return restaurantPersistencePort.saveRestaurant(restaurant);
     }
 
     @Override
     public PagedResult<Restaurant> getAllRestaurants(int page, int size) {
         return restaurantPersistencePort.findAllOrderedByNamePaginated(page, size);
+    }
+
+    private void validateRestaurantData(Restaurant restaurant) {
+        validateName(restaurant.getName());
+        validateNit(restaurant.getNit());
+        validatePhone(restaurant.getPhone());
+        validateOwner(restaurant.getOwnerId());
+        validateRestaurantDoesNotExist(restaurant.getNit());
     }
 
     private void validateName(String name) {

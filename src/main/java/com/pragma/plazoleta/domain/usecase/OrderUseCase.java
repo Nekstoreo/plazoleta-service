@@ -41,10 +41,7 @@ public class OrderUseCase implements IOrderServicePort {
 
     @Override
     public Order createOrder(Order order) {
-        validateOrderNotEmpty(order.getItems());
-        validateRestaurantExists(order.getRestaurantId());
-        validateClientHasNoActiveOrder(order.getClientId());
-        validateOrderItems(order.getItems(), order.getRestaurantId());
+        validateOrderCreationRequirements(order.getItems(), order.getRestaurantId(), order.getClientId());
 
         order.setStatus(OrderStatus.PENDING);
         order.setCreatedAt(LocalDateTime.now());
@@ -53,6 +50,13 @@ public class OrderUseCase implements IOrderServicePort {
         Order savedOrder = orderPersistencePort.saveOrder(order);
         saveTraceability(savedOrder, null, OrderStatus.PENDING, null);
         return savedOrder;
+    }
+
+    private void validateOrderCreationRequirements(List<OrderItem> items, Long restaurantId, Long clientId) {
+        validateOrderNotEmpty(items);
+        validateRestaurantExists(restaurantId);
+        validateClientHasNoActiveOrder(clientId);
+        validateOrderItems(items, restaurantId);
     }
 
     @Override
