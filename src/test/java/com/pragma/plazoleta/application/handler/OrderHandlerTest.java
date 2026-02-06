@@ -64,6 +64,10 @@ class OrderHandlerTest {
     private static final String RESTAURANT_NAME = "Mi Restaurante";
     private static final String DISH_NAME = "Hamburguesa";
     private static final Integer DISH_PRICE = 25000;
+    private static final String STATUS_PENDING = "PENDING";
+    private static final String STATUS_IN_PREPARATION = "IN_PREPARATION";
+    private static final String INCORRECT_SECURITY_PIN = "999999";
+    private static final String SECURITY_PIN = "123456";
 
     private Restaurant restaurant;
     private Dish dish;
@@ -106,7 +110,7 @@ class OrderHandlerTest {
                 .id(1L)
                 .clientId(CLIENT_ID)
                 .restaurantId(RESTAURANT_ID)
-                .status("PENDING")
+                .status(STATUS_PENDING)
                 .createdAt(order.getCreatedAt())
                 .updatedAt(order.getUpdatedAt())
                 .build();
@@ -161,7 +165,7 @@ class OrderHandlerTest {
         void shouldReturnPaginatedOrdersByStatus() {
             int page = 0;
             int size = 10;
-            String status = "PENDING";
+            String status = STATUS_PENDING;
 
             Order order2 = new Order();
             order2.setId(2L);
@@ -184,7 +188,7 @@ class OrderHandlerTest {
                     .id(2L)
                     .clientId(2L)
                     .restaurantId(RESTAURANT_ID)
-                    .status("PENDING")
+                    .status(STATUS_PENDING)
                     .build();
 
             OrderItemResponseDto itemResponseDto = OrderItemResponseDto.builder()
@@ -280,7 +284,7 @@ class OrderHandlerTest {
         void shouldEnrichResponseWithRestaurantName() {
             int page = 0;
             int size = 10;
-            String status = "PENDING";
+            String status = STATUS_PENDING;
 
             PagedResult<Order> pagedResult = PagedResult.of(
                     List.of(order),
@@ -313,7 +317,7 @@ class OrderHandlerTest {
         void shouldEnrichItemsWithDishNameAndPrice() {
             int page = 0;
             int size = 10;
-            String status = "PENDING";
+            String status = STATUS_PENDING;
 
             PagedResult<Order> pagedResult = PagedResult.of(
                     List.of(order),
@@ -348,10 +352,10 @@ class OrderHandlerTest {
         void shouldIncludeAllOrderFieldsInResponse() {
             int page = 0;
             int size = 10;
-            String status = "PENDING";
+            String status = STATUS_PENDING;
 
             order.setEmployeeId(EMPLOYEE_ID);
-            order.setSecurityPin("123456");
+            order.setSecurityPin(SECURITY_PIN);
 
             PagedResult<Order> pagedResult = PagedResult.of(
                     List.of(order),
@@ -403,7 +407,7 @@ class OrderHandlerTest {
         void shouldHandlePaginationMetadataCorrectly() {
             int page = 1;
             int size = 5;
-            String status = "IN_PREPARATION";
+            String status = STATUS_IN_PREPARATION;
 
             PagedResult<Order> pagedResult = PagedResult.of(
                     List.of(order),
@@ -499,7 +503,7 @@ class OrderHandlerTest {
             AssignOrderRequestDto request = new AssignOrderRequestDto(ORDER_ID);
 
             when(orderServicePort.assignOrderToEmployee(ORDER_ID, EMPLOYEE_ID))
-                    .thenThrow(new com.pragma.plazoleta.domain.exception.InvalidOrderStatusException(ORDER_ID, "IN_PREPARATION"));
+                    .thenThrow(new com.pragma.plazoleta.domain.exception.InvalidOrderStatusException(ORDER_ID, STATUS_IN_PREPARATION));
 
             assertThatThrownBy(() -> orderHandler.assignOrderToEmployee(request, EMPLOYEE_ID))
                     .isInstanceOf(com.pragma.plazoleta.domain.exception.InvalidOrderStatusException.class);
@@ -539,7 +543,7 @@ class OrderHandlerTest {
             readyOrder.setRestaurantId(RESTAURANT_ID);
             readyOrder.setEmployeeId(EMPLOYEE_ID);
             readyOrder.setStatus(OrderStatus.READY);
-            readyOrder.setSecurityPin("123456");
+            readyOrder.setSecurityPin(SECURITY_PIN);
             readyOrder.setCreatedAt(LocalDateTime.now());
             readyOrder.setUpdatedAt(LocalDateTime.now());
             OrderItem item = new OrderItem();
@@ -599,7 +603,6 @@ class OrderHandlerTest {
     class DeliverOrderTests {
 
         private static final Long ORDER_ID = 400L;
-        private static final String SECURITY_PIN = "123456";
 
         @Test
         @DisplayName("Should deliver order successfully")
@@ -658,7 +661,7 @@ class OrderHandlerTest {
             DeliverOrderRequestDto request = new DeliverOrderRequestDto(ORDER_ID, SECURITY_PIN);
 
             when(orderServicePort.markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, SECURITY_PIN))
-                    .thenThrow(new com.pragma.plazoleta.domain.exception.InvalidOrderStatusException(ORDER_ID, "IN_PREPARATION"));
+                    .thenThrow(new com.pragma.plazoleta.domain.exception.InvalidOrderStatusException(ORDER_ID, STATUS_IN_PREPARATION));
 
             assertThatThrownBy(() -> orderHandler.deliverOrder(request, EMPLOYEE_ID))
                     .isInstanceOf(com.pragma.plazoleta.domain.exception.InvalidOrderStatusException.class);
@@ -669,15 +672,15 @@ class OrderHandlerTest {
         @Test
         @DisplayName("Should throw exception when security PIN is invalid")
         void shouldThrowExceptionWhenSecurityPinIsInvalid() {
-            DeliverOrderRequestDto request = new DeliverOrderRequestDto(ORDER_ID, "999999");
+            DeliverOrderRequestDto request = new DeliverOrderRequestDto(ORDER_ID, INCORRECT_SECURITY_PIN);
 
-            when(orderServicePort.markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, "999999"))
+            when(orderServicePort.markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, INCORRECT_SECURITY_PIN))
                     .thenThrow(new com.pragma.plazoleta.domain.exception.InvalidSecurityPinException("The security PIN provided does not match the order's PIN."));
 
             assertThatThrownBy(() -> orderHandler.deliverOrder(request, EMPLOYEE_ID))
                     .isInstanceOf(com.pragma.plazoleta.domain.exception.InvalidSecurityPinException.class);
 
-            verify(orderServicePort).markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, "999999");
+            verify(orderServicePort).markOrderAsDelivered(ORDER_ID, EMPLOYEE_ID, INCORRECT_SECURITY_PIN);
         }
 
         @Test

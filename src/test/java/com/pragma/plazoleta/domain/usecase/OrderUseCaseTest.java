@@ -83,6 +83,8 @@ class OrderUseCaseTest {
     private static final Long DISH_ID_1 = 100L;
     private static final Long DISH_ID_2 = 101L;
     private static final Long EMPLOYEE_ID = 50L;
+    private static final String CLIENT_PHONE = "+573001234567";
+    private static final String DISH_NAME_HAMBURGUESA = "Hamburguesa";
 
     private Restaurant restaurant;
     private Dish dish1;
@@ -94,7 +96,7 @@ class OrderUseCaseTest {
                 "Mi Restaurante",
                 "123456789",
                 "Calle 123",
-                "+573001234567",
+                CLIENT_PHONE,
                 "https://example.com/logo.jpg",
                 5L
         );
@@ -343,7 +345,7 @@ class OrderUseCaseTest {
         @DisplayName("Should throw DishNotFromRestaurantException when dish belongs to different restaurant")
         void shouldThrowWhenDishNotFromRestaurant() {
             Long differentRestaurantId = 999L;
-            Dish dishFromDifferentRestaurant = createActiveDish(DISH_ID_1, "Hamburguesa", differentRestaurantId);
+            Dish dishFromDifferentRestaurant = createActiveDish(DISH_ID_1, DISH_NAME_HAMBURGUESA, differentRestaurantId);
 
             Order order = createOrder(CLIENT_ID, RESTAURANT_ID, 
                     List.of(new OrderItem(DISH_ID_1, 1)));
@@ -363,7 +365,7 @@ class OrderUseCaseTest {
         @Test
         @DisplayName("Should throw DishNotActiveException when dish is not active")
         void shouldThrowWhenDishNotActive() {
-            Dish inactiveDish = createActiveDish(DISH_ID_1, "Hamburguesa", RESTAURANT_ID);
+            Dish inactiveDish = createActiveDish(DISH_ID_1, DISH_NAME_HAMBURGUESA, RESTAURANT_ID);
             inactiveDish.setActive(false);
 
             Order order = createOrder(CLIENT_ID, RESTAURANT_ID, 
@@ -384,7 +386,7 @@ class OrderUseCaseTest {
         @Test
         @DisplayName("Should throw DishNotActiveException when dish active is null")
         void shouldThrowWhenDishActiveIsNull() {
-            Dish dishWithNullActive = createActiveDish(DISH_ID_1, "Hamburguesa", RESTAURANT_ID);
+            Dish dishWithNullActive = createActiveDish(DISH_ID_1, DISH_NAME_HAMBURGUESA, RESTAURANT_ID);
             dishWithNullActive.setActive(null);
 
             Order order = createOrder(CLIENT_ID, RESTAURANT_ID, 
@@ -594,11 +596,11 @@ class OrderUseCaseTest {
         @Test
         @DisplayName("Should mark order as delivered successfully when order is READY")
         void shouldMarkOrderAsDeliveredSuccessfully() {
-            Order readyOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.READY);
+            Order readyOrder = createOrderWithStatus(ORDER_ID, RESTAURANT_ID, OrderStatus.READY);
             readyOrder.setEmployeeId(EMPLOYEE_ID);
             readyOrder.setSecurityPin(VALID_SECURITY_PIN);
 
-            Order expectedDeliveredOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.DELIVERED);
+            Order expectedDeliveredOrder = createOrderWithStatus(ORDER_ID, RESTAURANT_ID, OrderStatus.DELIVERED);
             expectedDeliveredOrder.setEmployeeId(EMPLOYEE_ID);
             expectedDeliveredOrder.setSecurityPin(VALID_SECURITY_PIN);
 
@@ -639,7 +641,7 @@ class OrderUseCaseTest {
         @Test
         @DisplayName("Should throw InvalidOrderStatusException when order is PENDING")
         void shouldThrowInvalidOrderStatusExceptionWhenOrderIsPending() {
-            Order pendingOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.PENDING);
+            Order pendingOrder = createOrderWithStatus(ORDER_ID, RESTAURANT_ID, OrderStatus.PENDING);
 
             when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
                     .thenReturn(Optional.of(RESTAURANT_ID));
@@ -656,7 +658,7 @@ class OrderUseCaseTest {
         @Test
         @DisplayName("Should throw InvalidOrderStatusException when order is IN_PREPARATION")
         void shouldThrowInvalidOrderStatusExceptionWhenOrderIsInPreparation() {
-            Order inPreparationOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.IN_PREPARATION);
+            Order inPreparationOrder = createOrderWithStatus(ORDER_ID, RESTAURANT_ID, OrderStatus.IN_PREPARATION);
 
             when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
                     .thenReturn(Optional.of(RESTAURANT_ID));
@@ -672,7 +674,7 @@ class OrderUseCaseTest {
         @Test
         @DisplayName("Should throw InvalidOrderStatusException when order is CANCELLED")
         void shouldThrowInvalidOrderStatusExceptionWhenOrderIsCancelled() {
-            Order cancelledOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.CANCELLED);
+            Order cancelledOrder = createOrderWithStatus(ORDER_ID, RESTAURANT_ID, OrderStatus.CANCELLED);
 
             when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
                     .thenReturn(Optional.of(RESTAURANT_ID));
@@ -688,7 +690,7 @@ class OrderUseCaseTest {
         @Test
         @DisplayName("Should throw InvalidOrderStatusException when order is already DELIVERED")
         void shouldThrowInvalidOrderStatusExceptionWhenOrderIsAlreadyDelivered() {
-            Order deliveredOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.DELIVERED);
+            Order deliveredOrder = createOrderWithStatus(ORDER_ID, RESTAURANT_ID, OrderStatus.DELIVERED);
 
             when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
                     .thenReturn(Optional.of(RESTAURANT_ID));
@@ -704,7 +706,7 @@ class OrderUseCaseTest {
         @Test
         @DisplayName("Should throw InvalidSecurityPinException when provided PIN is incorrect")
         void shouldThrowInvalidSecurityPinExceptionWhenPinIsIncorrect() {
-            Order readyOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.READY);
+            Order readyOrder = createOrderWithStatus(ORDER_ID, RESTAURANT_ID, OrderStatus.READY);
             readyOrder.setEmployeeId(EMPLOYEE_ID);
             readyOrder.setSecurityPin(VALID_SECURITY_PIN);
 
@@ -725,7 +727,7 @@ class OrderUseCaseTest {
         @Test
         @DisplayName("Should throw InvalidSecurityPinException when provided PIN is null")
         void shouldThrowInvalidSecurityPinExceptionWhenPinIsNull() {
-            Order readyOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.READY);
+            Order readyOrder = createOrderWithStatus(ORDER_ID, RESTAURANT_ID, OrderStatus.READY);
             readyOrder.setEmployeeId(EMPLOYEE_ID);
             readyOrder.setSecurityPin(VALID_SECURITY_PIN);
 
@@ -743,7 +745,7 @@ class OrderUseCaseTest {
         @Test
         @DisplayName("Should throw InvalidSecurityPinException when order PIN is null")
         void shouldThrowInvalidSecurityPinExceptionWhenOrderPinIsNull() {
-            Order readyOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.READY);
+            Order readyOrder = createOrderWithStatus(ORDER_ID, RESTAURANT_ID, OrderStatus.READY);
             readyOrder.setEmployeeId(EMPLOYEE_ID);
             readyOrder.setSecurityPin(null);
 
@@ -762,7 +764,7 @@ class OrderUseCaseTest {
         @DisplayName("Should throw OrderNotFromEmployeeRestaurantException when order does not belong to employee's restaurant")
         void shouldThrowOrderNotFromEmployeeRestaurantException() {
             Long differentRestaurantId = 999L;
-            Order orderFromDifferentRestaurant = createOrderWithStatus(ORDER_ID, CLIENT_ID, differentRestaurantId, OrderStatus.READY);
+            Order orderFromDifferentRestaurant = createOrderWithStatus(ORDER_ID, differentRestaurantId, OrderStatus.READY);
             orderFromDifferentRestaurant.setSecurityPin(VALID_SECURITY_PIN);
 
             when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
@@ -794,7 +796,7 @@ class OrderUseCaseTest {
         @Test
         @DisplayName("Should update order timestamp when marking as delivered")
         void shouldUpdateOrderTimestamp() {
-            Order readyOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.READY);
+            Order readyOrder = createOrderWithStatus(ORDER_ID, RESTAURANT_ID, OrderStatus.READY);
             readyOrder.setEmployeeId(EMPLOYEE_ID);
             readyOrder.setSecurityPin(VALID_SECURITY_PIN);
 
@@ -817,7 +819,7 @@ class OrderUseCaseTest {
         @Test
         @DisplayName("Should persist order with DELIVERED status")
         void shouldPersistOrderWithDeliveredStatus() {
-            Order readyOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.READY);
+            Order readyOrder = createOrderWithStatus(ORDER_ID, RESTAURANT_ID, OrderStatus.READY);
             readyOrder.setEmployeeId(EMPLOYEE_ID);
             readyOrder.setSecurityPin(VALID_SECURITY_PIN);
 
@@ -843,7 +845,7 @@ class OrderUseCaseTest {
         @DisplayName("Should correctly validate security PIN with valid PIN")
         void shouldCorrectlyValidateSecurityPinWithValidPin() {
             String actualPin = "654321";
-            Order readyOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.READY);
+            Order readyOrder = createOrderWithStatus(ORDER_ID, RESTAURANT_ID, OrderStatus.READY);
             readyOrder.setEmployeeId(EMPLOYEE_ID);
             readyOrder.setSecurityPin(actualPin);
 
@@ -870,8 +872,8 @@ class OrderUseCaseTest {
         @Test
         @DisplayName("Should assign order to employee successfully when order is PENDING")
         void shouldAssignOrderSuccessfullyWhenPending() {
-            Order pendingOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.PENDING);
-            Order expectedAssignedOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.IN_PREPARATION);
+            Order pendingOrder = createOrderWithStatus(ORDER_ID, RESTAURANT_ID, OrderStatus.PENDING);
+            Order expectedAssignedOrder = createOrderWithStatus(ORDER_ID, RESTAURANT_ID, OrderStatus.IN_PREPARATION);
             expectedAssignedOrder.setEmployeeId(EMPLOYEE_ID);
 
             when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
@@ -911,7 +913,7 @@ class OrderUseCaseTest {
         @Test
         @DisplayName("Should throw InvalidOrderStatusException when order is not PENDING")
         void shouldThrowInvalidOrderStatusExceptionWhenOrderIsNotPending() {
-            Order inPreparationOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.IN_PREPARATION);
+            Order inPreparationOrder = createOrderWithStatus(ORDER_ID, RESTAURANT_ID, OrderStatus.IN_PREPARATION);
 
             when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
                     .thenReturn(Optional.of(RESTAURANT_ID));
@@ -930,7 +932,7 @@ class OrderUseCaseTest {
         @DisplayName("Should throw OrderNotFromEmployeeRestaurantException when order does not belong to employee's restaurant")
         void shouldThrowOrderNotFromEmployeeRestaurantException() {
             Long differentRestaurantId = 999L;
-            Order orderFromDifferentRestaurant = createOrderWithStatus(ORDER_ID, CLIENT_ID, differentRestaurantId, OrderStatus.PENDING);
+            Order orderFromDifferentRestaurant = createOrderWithStatus(ORDER_ID, differentRestaurantId, OrderStatus.PENDING);
 
             when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
                     .thenReturn(Optional.of(RESTAURANT_ID));
@@ -961,7 +963,7 @@ class OrderUseCaseTest {
         @Test
         @DisplayName("Should throw InvalidOrderStatusException for READY status")
         void shouldThrowInvalidOrderStatusExceptionForReadyStatus() {
-            Order readyOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.READY);
+            Order readyOrder = createOrderWithStatus(ORDER_ID, RESTAURANT_ID, OrderStatus.READY);
 
             when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
                     .thenReturn(Optional.of(RESTAURANT_ID));
@@ -977,7 +979,7 @@ class OrderUseCaseTest {
         @Test
         @DisplayName("Should throw InvalidOrderStatusException for DELIVERED status")
         void shouldThrowInvalidOrderStatusExceptionForDeliveredStatus() {
-            Order deliveredOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.DELIVERED);
+            Order deliveredOrder = createOrderWithStatus(ORDER_ID, RESTAURANT_ID, OrderStatus.DELIVERED);
 
             when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
                     .thenReturn(Optional.of(RESTAURANT_ID));
@@ -993,7 +995,7 @@ class OrderUseCaseTest {
         @Test
         @DisplayName("Should throw InvalidOrderStatusException for CANCELLED status")
         void shouldThrowInvalidOrderStatusExceptionForCancelledStatus() {
-            Order cancelledOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.CANCELLED);
+            Order cancelledOrder = createOrderWithStatus(ORDER_ID, RESTAURANT_ID, OrderStatus.CANCELLED);
 
             when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
                     .thenReturn(Optional.of(RESTAURANT_ID));
@@ -1007,10 +1009,10 @@ class OrderUseCaseTest {
         }
     }
 
-    private Order createOrderWithStatus(Long orderId, Long clientId, Long restaurantId, OrderStatus status) {
+    private Order createOrderWithStatus(Long orderId, Long restaurantId, OrderStatus status) {
         Order order = new Order();
         order.setId(orderId);
-        order.setClientId(clientId);
+        order.setClientId(OrderUseCaseTest.CLIENT_ID);
         order.setRestaurantId(restaurantId);
         order.setStatus(status);
         order.setCreatedAt(LocalDateTime.now());
@@ -1029,7 +1031,7 @@ class OrderUseCaseTest {
         @Test
         @DisplayName("Should mark order as ready successfully when order is IN_PREPARATION")
         void shouldMarkOrderAsReadySuccessfully() {
-            Order inPreparationOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.IN_PREPARATION);
+            Order inPreparationOrder = createOrderWithStatus(ORDER_ID, RESTAURANT_ID, OrderStatus.IN_PREPARATION);
             inPreparationOrder.setEmployeeId(EMPLOYEE_ID);
 
             when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
@@ -1071,7 +1073,7 @@ class OrderUseCaseTest {
         @Test
         @DisplayName("Should generate 6 digit security PIN")
         void shouldGenerateSixDigitSecurityPin() {
-            Order inPreparationOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.IN_PREPARATION);
+            Order inPreparationOrder = createOrderWithStatus(ORDER_ID, RESTAURANT_ID, OrderStatus.IN_PREPARATION);
             inPreparationOrder.setEmployeeId(EMPLOYEE_ID);
 
             when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
@@ -1109,7 +1111,7 @@ class OrderUseCaseTest {
         @Test
         @DisplayName("Should throw OrderNotInPreparationException when order is PENDING")
         void shouldThrowOrderNotInPreparationExceptionWhenOrderIsPending() {
-            Order pendingOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.PENDING);
+            Order pendingOrder = createOrderWithStatus(ORDER_ID, RESTAURANT_ID, OrderStatus.PENDING);
 
             when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
                     .thenReturn(Optional.of(RESTAURANT_ID));
@@ -1127,7 +1129,7 @@ class OrderUseCaseTest {
         @Test
         @DisplayName("Should throw OrderNotInPreparationException when order is READY")
         void shouldThrowOrderNotInPreparationExceptionWhenOrderIsReady() {
-            Order readyOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.READY);
+            Order readyOrder = createOrderWithStatus(ORDER_ID, RESTAURANT_ID, OrderStatus.READY);
 
             when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
                     .thenReturn(Optional.of(RESTAURANT_ID));
@@ -1143,7 +1145,7 @@ class OrderUseCaseTest {
         @Test
         @DisplayName("Should throw OrderNotInPreparationException when order is DELIVERED")
         void shouldThrowOrderNotInPreparationExceptionWhenOrderIsDelivered() {
-            Order deliveredOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.DELIVERED);
+            Order deliveredOrder = createOrderWithStatus(ORDER_ID, RESTAURANT_ID, OrderStatus.DELIVERED);
 
             when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
                     .thenReturn(Optional.of(RESTAURANT_ID));
@@ -1159,7 +1161,7 @@ class OrderUseCaseTest {
         @Test
         @DisplayName("Should throw OrderNotInPreparationException when order is CANCELLED")
         void shouldThrowOrderNotInPreparationExceptionWhenOrderIsCancelled() {
-            Order cancelledOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.CANCELLED);
+            Order cancelledOrder = createOrderWithStatus(ORDER_ID, RESTAURANT_ID, OrderStatus.CANCELLED);
 
             when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
                     .thenReturn(Optional.of(RESTAURANT_ID));
@@ -1176,7 +1178,7 @@ class OrderUseCaseTest {
         @DisplayName("Should throw OrderNotFromEmployeeRestaurantException when order does not belong to employee's restaurant")
         void shouldThrowOrderNotFromEmployeeRestaurantException() {
             Long differentRestaurantId = 999L;
-            Order orderFromDifferentRestaurant = createOrderWithStatus(ORDER_ID, CLIENT_ID, differentRestaurantId, OrderStatus.IN_PREPARATION);
+            Order orderFromDifferentRestaurant = createOrderWithStatus(ORDER_ID, differentRestaurantId, OrderStatus.IN_PREPARATION);
 
             when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
                     .thenReturn(Optional.of(RESTAURANT_ID));
@@ -1207,7 +1209,7 @@ class OrderUseCaseTest {
         @Test
         @DisplayName("Should throw ClientPhoneNotFoundException when client phone is not found")
         void shouldThrowClientPhoneNotFoundExceptionWhenPhoneNotFound() {
-            Order inPreparationOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.IN_PREPARATION);
+            Order inPreparationOrder = createOrderWithStatus(ORDER_ID, RESTAURANT_ID, OrderStatus.IN_PREPARATION);
             inPreparationOrder.setEmployeeId(EMPLOYEE_ID);
 
             when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
@@ -1229,7 +1231,7 @@ class OrderUseCaseTest {
         @Test
         @DisplayName("Should send notification with correct parameters")
         void shouldSendNotificationWithCorrectParameters() {
-            Order inPreparationOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.IN_PREPARATION);
+            Order inPreparationOrder = createOrderWithStatus(ORDER_ID, RESTAURANT_ID, OrderStatus.IN_PREPARATION);
             inPreparationOrder.setEmployeeId(EMPLOYEE_ID);
 
             when(employeeRestaurantPort.getRestaurantIdByEmployeeId(EMPLOYEE_ID))
@@ -1263,7 +1265,7 @@ class OrderUseCaseTest {
         @Test
         @DisplayName("Should cancel order successfully when order is PENDING and user is owner")
         void shouldCancelOrderSuccessfully() {
-            Order pendingOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.PENDING);
+            Order pendingOrder = createOrderWithStatus(ORDER_ID, RESTAURANT_ID, OrderStatus.PENDING);
 
             when(orderPersistencePort.findById(ORDER_ID)).thenReturn(Optional.of(pendingOrder));
             when(orderPersistencePort.saveOrder(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -1288,7 +1290,7 @@ class OrderUseCaseTest {
         @Test
         @DisplayName("Should throw UserNotOwnerException when user is not the owner")
         void shouldThrowUserNotOwnerException() {
-            Order pendingOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.PENDING);
+            Order pendingOrder = createOrderWithStatus(ORDER_ID, RESTAURANT_ID, OrderStatus.PENDING);
             Long otherClientId = 999L;
 
             when(orderPersistencePort.findById(ORDER_ID)).thenReturn(Optional.of(pendingOrder));
@@ -1302,7 +1304,7 @@ class OrderUseCaseTest {
         @Test
         @DisplayName("Should throw OrderNotCancellableException when order is not PENDING")
         void shouldThrowOrderNotCancellableException() {
-            Order inPreparationOrder = createOrderWithStatus(ORDER_ID, CLIENT_ID, RESTAURANT_ID, OrderStatus.IN_PREPARATION);
+            Order inPreparationOrder = createOrderWithStatus(ORDER_ID, RESTAURANT_ID, OrderStatus.IN_PREPARATION);
 
             when(orderPersistencePort.findById(ORDER_ID)).thenReturn(Optional.of(inPreparationOrder));
 

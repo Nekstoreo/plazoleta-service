@@ -22,7 +22,7 @@ public class EmployeeRestaurantFeignAdapter implements IEmployeeRestaurantPort {
         try {
             return userFeignClient.getUserById(employeeId)
                     .map(UserDto::getRestaurantId);
-        } catch (FeignException e) {
+        } catch (FeignException _) {
             return Optional.empty();
         }
     }
@@ -32,7 +32,7 @@ public class EmployeeRestaurantFeignAdapter implements IEmployeeRestaurantPort {
         try {
             return userFeignClient.getUserById(employeeId)
                     .map(UserDto::getEmail);
-        } catch (FeignException e) {
+        } catch (FeignException _) {
             return Optional.empty();
         }
     }

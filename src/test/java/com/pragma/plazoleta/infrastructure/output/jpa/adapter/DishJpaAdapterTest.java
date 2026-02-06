@@ -47,15 +47,19 @@ class DishJpaAdapterTest {
     private Dish savedDish;
     private static final Long DISH_ID = 1L;
     private static final Long RESTAURANT_ID = 10L;
+    private static final String DISH_NAME = "Hamburguesa Clásica";
+    private static final String DISH_CATEGORY = "Hamburguesas";
+    private static final String DISH_DESCRIPTION = "Deliciosa hamburguesa con carne 100% res";
+    private static final String DISH_IMAGE_URL = "https://example.com/burger.jpg";
 
     @BeforeEach
     void setUp() {
         dish = new Dish(
-                "Hamburguesa Clásica",
+                DISH_NAME,
                 25000,
-                "Deliciosa hamburguesa con carne 100% res",
-                "https://example.com/burger.jpg",
-                "Hamburguesas",
+                DISH_DESCRIPTION,
+                DISH_IMAGE_URL,
+                DISH_CATEGORY,
                 RESTAURANT_ID
         );
         dish.setActive(true);
@@ -64,32 +68,32 @@ class DishJpaAdapterTest {
         restaurantEntity.setId(RESTAURANT_ID);
 
         dishEntity = DishEntity.builder()
-                .name("Hamburguesa Clásica")
+                .name(DISH_NAME)
                 .price(25000)
-                .description("Deliciosa hamburguesa con carne 100% res")
-                .imageUrl("https://example.com/burger.jpg")
-                .category("Hamburguesas")
+                .description(DISH_DESCRIPTION)
+                .imageUrl(DISH_IMAGE_URL)
+                .category(DISH_CATEGORY)
                 .active(true)
                 .restaurant(restaurantEntity)
                 .build();
 
         savedDishEntity = DishEntity.builder()
                 .id(DISH_ID)
-                .name("Hamburguesa Clásica")
+                .name(DISH_NAME)
                 .price(25000)
-                .description("Deliciosa hamburguesa con carne 100% res")
-                .imageUrl("https://example.com/burger.jpg")
-                .category("Hamburguesas")
+                .description(DISH_DESCRIPTION)
+                .imageUrl(DISH_IMAGE_URL)
+                .category(DISH_CATEGORY)
                 .active(true)
                 .restaurant(restaurantEntity)
                 .build();
 
         savedDish = new Dish(
-                "Hamburguesa Clásica",
+                DISH_NAME,
                 25000,
-                "Deliciosa hamburguesa con carne 100% res",
-                "https://example.com/burger.jpg",
-                "Hamburguesas",
+                DISH_DESCRIPTION,
+                DISH_IMAGE_URL,
+                DISH_CATEGORY,
                 RESTAURANT_ID
         );
         savedDish.setId(DISH_ID);
@@ -111,7 +115,7 @@ class DishJpaAdapterTest {
 
             assertThat(result).isNotNull();
             assertThat(result.getId()).isEqualTo(DISH_ID);
-            assertThat(result.getName()).isEqualTo("Hamburguesa Clásica");
+            assertThat(result.getName()).isEqualTo(DISH_NAME);
             assertThat(result.getPrice()).isEqualTo(25000);
             assertThat(result.getActive()).isTrue();
 
@@ -135,7 +139,7 @@ class DishJpaAdapterTest {
 
             assertThat(result).isPresent();
             assertThat(result.get().getId()).isEqualTo(DISH_ID);
-            assertThat(result.get().getName()).isEqualTo("Hamburguesa Clásica");
+            assertThat(result.get().getName()).isEqualTo(DISH_NAME);
 
             verify(dishRepository).findById(DISH_ID);
         }
@@ -211,16 +215,16 @@ class DishJpaAdapterTest {
         @Test
         @DisplayName("Should return paginated dishes filtered by category")
         void shouldReturnPaginatedDishesFilteredByCategory() {
-            String category = "Hamburguesas";
+            String category = DISH_CATEGORY;
             RestaurantEntity restaurantEntity = new RestaurantEntity();
             restaurantEntity.setId(RESTAURANT_ID);
 
-            DishEntity dishEntity1 = createDishEntity(1L, "Hamburguesa Clásica", category, restaurantEntity);
+            DishEntity dishEntity1 = createDishEntity(1L, DISH_NAME, category, restaurantEntity);
             DishEntity dishEntity2 = createDishEntity(2L, "Hamburguesa BBQ", category, restaurantEntity);
             List<DishEntity> entities = Arrays.asList(dishEntity1, dishEntity2);
             Page<DishEntity> page = new PageImpl<>(entities, PageRequest.of(0, 10), 2);
 
-            Dish dish1 = createDish(1L, "Hamburguesa Clásica", category);
+            Dish dish1 = createDish(1L, DISH_NAME, category);
             Dish dish2 = createDish(2L, "Hamburguesa BBQ", category);
 
             when(dishRepository.findByRestaurantIdAndCategoryIgnoreCaseAndActiveTrue(

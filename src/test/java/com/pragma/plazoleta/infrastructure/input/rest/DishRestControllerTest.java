@@ -53,6 +53,16 @@ class DishRestControllerTest {
     private static final Long DISH_ID = 1L;
     private static final Long OWNER_ID = 1L;
     private static final Long RESTAURANT_ID = 10L;
+    private static final String OWNER_ROLE = "OWNER";
+    private static final String DISH_STATUS_ENDPOINT = "/api/v1/dishes/{dishId}/status";
+    private static final String DISH_NAME = "Hamburguesa Clásica";
+    private static final String DISH_CATEGORY = "Hamburguesas";
+    private static final String DISH_DESCRIPTION = "Deliciosa hamburguesa con carne 100% res";
+    private static final String DISH_IMAGE_URL = "https://example.com/burger.jpg";
+    private static final String MESSAGE_JSON_PATH = "$.message";
+    private static final String NEW_DESCRIPTION = "Nueva descripción";
+    private static final String DISH_UPDATE_ENDPOINT = "/api/v1/dishes/{dishId}";
+    private static final String DISH_CREATE_ENDPOINT = "/api/v1/dishes";
 
     @BeforeEach
     void setUp() {
@@ -62,27 +72,27 @@ class DishRestControllerTest {
         objectMapper = new ObjectMapper();
 
         validRequest = DishRequestDto.builder()
-                .name("Hamburguesa Clásica")
+                .name(DISH_NAME)
                 .price(25000)
-                .description("Deliciosa hamburguesa con carne 100% res")
-                .imageUrl("https://example.com/burger.jpg")
-                .category("Hamburguesas")
+                .description(DISH_DESCRIPTION)
+                .imageUrl(DISH_IMAGE_URL)
+                .category(DISH_CATEGORY)
                 .restaurantId(RESTAURANT_ID)
                 .build();
 
         responseDto = DishResponseDto.builder()
                 .id(DISH_ID)
-                .name("Hamburguesa Clásica")
+                .name(DISH_NAME)
                 .price(25000)
-                .description("Deliciosa hamburguesa con carne 100% res")
-                .imageUrl("https://example.com/burger.jpg")
-                .category("Hamburguesas")
+                .description(DISH_DESCRIPTION)
+                .imageUrl(DISH_IMAGE_URL)
+                .category(DISH_CATEGORY)
                 .active(true)
                 .restaurantId(RESTAURANT_ID)
                 .build();
 
         // Setup security context with authenticated user
-        setUpSecurityContext(OWNER_ID, "OWNER");
+        setUpSecurityContext(OWNER_ID, OWNER_ROLE);
     }
 
     private void setUpSecurityContext(Long userId, String role) {
@@ -105,12 +115,12 @@ class DishRestControllerTest {
             when(dishHandler.createDish(any(DishRequestDto.class), eq(OWNER_ID)))
                     .thenReturn(responseDto);
 
-            mockMvc.perform(post("/api/v1/dishes")
+            mockMvc.perform(post(DISH_CREATE_ENDPOINT)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.id").value(DISH_ID))
-                    .andExpect(jsonPath("$.name").value("Hamburguesa Clásica"))
+                    .andExpect(jsonPath("$.name").value(DISH_NAME))
                     .andExpect(jsonPath("$.price").value(25000))
                     .andExpect(jsonPath("$.active").value(true))
                     .andExpect(jsonPath("$.restaurantId").value(RESTAURANT_ID));
@@ -126,7 +136,7 @@ class DishRestControllerTest {
         void shouldReturn400WhenNameIsBlank() throws Exception {
             validRequest.setName("");
 
-            mockMvc.perform(post("/api/v1/dishes")
+            mockMvc.perform(post(DISH_CREATE_ENDPOINT)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isBadRequest());
@@ -137,7 +147,7 @@ class DishRestControllerTest {
         void shouldReturn400WhenPriceIsLessThan1() throws Exception {
             validRequest.setPrice(0);
 
-            mockMvc.perform(post("/api/v1/dishes")
+            mockMvc.perform(post(DISH_CREATE_ENDPOINT)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isBadRequest());
@@ -148,7 +158,7 @@ class DishRestControllerTest {
         void shouldReturn400WhenRestaurantIdIsNull() throws Exception {
             validRequest.setRestaurantId(null);
 
-            mockMvc.perform(post("/api/v1/dishes")
+            mockMvc.perform(post(DISH_CREATE_ENDPOINT)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isBadRequest());
@@ -165,11 +175,11 @@ class DishRestControllerTest {
             when(dishHandler.createDish(any(DishRequestDto.class), eq(OWNER_ID)))
                     .thenThrow(new InvalidPriceException());
 
-            mockMvc.perform(post("/api/v1/dishes")
+            mockMvc.perform(post(DISH_CREATE_ENDPOINT)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.message").value("Price must be a positive integer greater than zero"));
+                    .andExpect(jsonPath(MESSAGE_JSON_PATH).value("Price must be a positive integer greater than zero"));
         }
 
         @Test
@@ -178,27 +188,27 @@ class DishRestControllerTest {
             when(dishHandler.createDish(any(DishRequestDto.class), eq(OWNER_ID)))
                     .thenThrow(new RestaurantNotFoundException(RESTAURANT_ID));
 
-            mockMvc.perform(post("/api/v1/dishes")
+            mockMvc.perform(post(DISH_CREATE_ENDPOINT)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.message").value("Restaurant not found with id: " + RESTAURANT_ID));
+                    .andExpect(jsonPath(MESSAGE_JSON_PATH).value("Restaurant not found with id: " + RESTAURANT_ID));
         }
 
         @Test
         @DisplayName("Should return 403 when user is not restaurant owner")
         void shouldReturn403WhenUserIsNotOwner() throws Exception {
             Long wrongOwnerId = 999L;
-            setUpSecurityContext(wrongOwnerId, "OWNER");
+            setUpSecurityContext(wrongOwnerId, OWNER_ROLE);
 
             when(dishHandler.createDish(any(DishRequestDto.class), eq(wrongOwnerId)))
                     .thenThrow(new UserNotRestaurantOwnerException(wrongOwnerId, RESTAURANT_ID));
 
-            mockMvc.perform(post("/api/v1/dishes")
+            mockMvc.perform(post(DISH_CREATE_ENDPOINT)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.message").value("User with id " + wrongOwnerId + " is not the owner of restaurant with id " + RESTAURANT_ID));
+                    .andExpect(jsonPath(MESSAGE_JSON_PATH).value("User with id " + wrongOwnerId + " is not the owner of restaurant with id " + RESTAURANT_ID));
         }
     }
 
@@ -231,7 +241,7 @@ class DishRestControllerTest {
             when(dishHandler.updateDish(eq(DISH_ID), any(DishUpdateRequestDto.class), eq(OWNER_ID)))
                     .thenReturn(updatedResponse);
 
-            mockMvc.perform(patch("/api/v1/dishes/{dishId}", DISH_ID)
+            mockMvc.perform(patch(DISH_UPDATE_ENDPOINT, DISH_ID)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(updateRequest)))
                     .andExpect(status().isOk())
@@ -250,10 +260,10 @@ class DishRestControllerTest {
         void shouldReturn400WhenPriceIsLessThan1() throws Exception {
             DishUpdateRequestDto updateRequest = DishUpdateRequestDto.builder()
                     .price(0)
-                    .description("Nueva descripción")
+                    .description(NEW_DESCRIPTION)
                     .build();
 
-            mockMvc.perform(patch("/api/v1/dishes/{dishId}", DISH_ID)
+            mockMvc.perform(patch(DISH_UPDATE_ENDPOINT, DISH_ID)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(updateRequest)))
                     .andExpect(status().isBadRequest());
@@ -267,7 +277,7 @@ class DishRestControllerTest {
                     .description("")
                     .build();
 
-            mockMvc.perform(patch("/api/v1/dishes/{dishId}", DISH_ID)
+            mockMvc.perform(patch(DISH_UPDATE_ENDPOINT, DISH_ID)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(updateRequest)))
                     .andExpect(status().isBadRequest());
@@ -283,34 +293,34 @@ class DishRestControllerTest {
         void shouldReturn404WhenDishNotFound() throws Exception {
             DishUpdateRequestDto updateRequest = DishUpdateRequestDto.builder()
                     .price(30000)
-                    .description("Nueva descripción")
+                    .description(NEW_DESCRIPTION)
                     .build();
 
             when(dishHandler.updateDish(eq(DISH_ID), any(DishUpdateRequestDto.class), eq(OWNER_ID)))
                     .thenThrow(new DishNotFoundException(DISH_ID));
 
-            mockMvc.perform(patch("/api/v1/dishes/{dishId}", DISH_ID)
+            mockMvc.perform(patch(DISH_UPDATE_ENDPOINT, DISH_ID)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(updateRequest)))
                     .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.message").value("Dish not found with id: " + DISH_ID));
+                    .andExpect(jsonPath(MESSAGE_JSON_PATH).value("Dish not found with id: " + DISH_ID));
         }
 
         @Test
         @DisplayName("Should return 403 when user is not restaurant owner")
         void shouldReturn403WhenUserIsNotOwner() throws Exception {
             Long wrongOwnerId = 999L;
-            setUpSecurityContext(wrongOwnerId, "OWNER");
+            setUpSecurityContext(wrongOwnerId, OWNER_ROLE);
 
             DishUpdateRequestDto updateRequest = DishUpdateRequestDto.builder()
                     .price(30000)
-                    .description("Nueva descripción")
+                    .description(NEW_DESCRIPTION)
                     .build();
 
             when(dishHandler.updateDish(eq(DISH_ID), any(DishUpdateRequestDto.class), eq(wrongOwnerId)))
                     .thenThrow(new UserNotRestaurantOwnerException(wrongOwnerId, RESTAURANT_ID));
 
-            mockMvc.perform(patch("/api/v1/dishes/{dishId}", DISH_ID)
+            mockMvc.perform(patch(DISH_UPDATE_ENDPOINT, DISH_ID)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(updateRequest)))
                     .andExpect(status().isForbidden());
@@ -342,7 +352,7 @@ class DishRestControllerTest {
             when(dishHandler.changeDishActiveStatus(eq(DISH_ID), any(DishActiveRequestDto.class), eq(OWNER_ID)))
                     .thenReturn(updatedResponse);
 
-            mockMvc.perform(patch("/api/v1/dishes/{dishId}/status", DISH_ID)
+            mockMvc.perform(patch(DISH_STATUS_ENDPOINT, DISH_ID)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(activeRequest)))
                     .andExpect(status().isOk())
@@ -362,7 +372,7 @@ class DishRestControllerTest {
                     .active(null)
                     .build();
 
-            mockMvc.perform(patch("/api/v1/dishes/{dishId}/status", DISH_ID)
+            mockMvc.perform(patch(DISH_STATUS_ENDPOINT, DISH_ID)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(invalidRequest)))
                     .andExpect(status().isBadRequest());
@@ -383,11 +393,11 @@ class DishRestControllerTest {
             when(dishHandler.changeDishActiveStatus(eq(DISH_ID), any(DishActiveRequestDto.class), eq(OWNER_ID)))
                     .thenThrow(new DishNotFoundException(DISH_ID));
 
-            mockMvc.perform(patch("/api/v1/dishes/{dishId}/status", DISH_ID)
+            mockMvc.perform(patch(DISH_STATUS_ENDPOINT, DISH_ID)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(activeRequest)))
                     .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.message").value("Dish not found with id: " + DISH_ID));
+                    .andExpect(jsonPath(MESSAGE_JSON_PATH).value("Dish not found with id: " + DISH_ID));
         }
 
         @Test
@@ -398,12 +408,12 @@ class DishRestControllerTest {
                     .build();
 
             Long wrongOwnerId = 999L;
-            setUpSecurityContext(wrongOwnerId, "OWNER");
+            setUpSecurityContext(wrongOwnerId, OWNER_ROLE);
 
             when(dishHandler.changeDishActiveStatus(eq(DISH_ID), any(DishActiveRequestDto.class), eq(wrongOwnerId)))
                     .thenThrow(new UserNotRestaurantOwnerException(wrongOwnerId, RESTAURANT_ID));
 
-            mockMvc.perform(patch("/api/v1/dishes/{dishId}/status", DISH_ID)
+            mockMvc.perform(patch(DISH_STATUS_ENDPOINT, DISH_ID)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(activeRequest)))
                     .andExpect(status().isForbidden());
@@ -419,11 +429,11 @@ class DishRestControllerTest {
             when(dishHandler.changeDishActiveStatus(eq(DISH_ID), any(DishActiveRequestDto.class), eq(OWNER_ID)))
                     .thenThrow(new InvalidActiveStatusException());
 
-            mockMvc.perform(patch("/api/v1/dishes/{dishId}/status", DISH_ID)
+            mockMvc.perform(patch(DISH_STATUS_ENDPOINT, DISH_ID)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(activeRequest)))
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.message").value("Active flag must be provided"));
+                    .andExpect(jsonPath(MESSAGE_JSON_PATH).value("Active flag must be provided"));
         }
     }
 }

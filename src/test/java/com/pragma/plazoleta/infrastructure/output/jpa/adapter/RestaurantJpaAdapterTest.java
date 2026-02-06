@@ -26,6 +26,9 @@ class RestaurantJpaAdapterTest {
     private static final Long OWNER_ID = 1L;
     private static final String RESTAURANT_NAME = "El Buen Sabor";
     private static final String RESTAURANT_NIT = "123456789";
+    private static final String RESTAURANT_ADDRESS = "Calle 123 #45-67";
+    private static final String RESTAURANT_PHONE = "+573001234567";
+    private static final String RESTAURANT_LOGO_URL = "https://example.com/logo.png";
 
     @Mock
     private IRestaurantRepository restaurantRepository;
@@ -45,26 +48,26 @@ class RestaurantJpaAdapterTest {
         restaurant = new Restaurant();
         restaurant.setName(RESTAURANT_NAME);
         restaurant.setNit(RESTAURANT_NIT);
-        restaurant.setAddress("Calle 123 #45-67");
-        restaurant.setPhone("+573001234567");
-        restaurant.setLogoUrl("https://example.com/logo.png");
+        restaurant.setAddress(RESTAURANT_ADDRESS);
+        restaurant.setPhone(RESTAURANT_PHONE);
+        restaurant.setLogoUrl(RESTAURANT_LOGO_URL);
         restaurant.setOwnerId(OWNER_ID);
 
         restaurantEntity = new RestaurantEntity();
         restaurantEntity.setName(RESTAURANT_NAME);
         restaurantEntity.setNit(RESTAURANT_NIT);
-        restaurantEntity.setAddress("Calle 123 #45-67");
-        restaurantEntity.setPhone("+573001234567");
-        restaurantEntity.setLogoUrl("https://example.com/logo.png");
+        restaurantEntity.setAddress(RESTAURANT_ADDRESS);
+        restaurantEntity.setPhone(RESTAURANT_PHONE);
+        restaurantEntity.setLogoUrl(RESTAURANT_LOGO_URL);
         restaurantEntity.setOwnerId(OWNER_ID);
 
         savedEntity = new RestaurantEntity();
         savedEntity.setId(1L);
         savedEntity.setName(RESTAURANT_NAME);
         savedEntity.setNit(RESTAURANT_NIT);
-        savedEntity.setAddress("Calle 123 #45-67");
-        savedEntity.setPhone("+573001234567");
-        savedEntity.setLogoUrl("https://example.com/logo.png");
+        savedEntity.setAddress(RESTAURANT_ADDRESS);
+        savedEntity.setPhone(RESTAURANT_PHONE);
+        savedEntity.setLogoUrl(RESTAURANT_LOGO_URL);
         savedEntity.setOwnerId(OWNER_ID);
     }
 

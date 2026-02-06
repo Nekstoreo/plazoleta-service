@@ -47,33 +47,37 @@ class DishHandlerTest {
     private static final Long DISH_ID = 1L;
     private static final Long OWNER_ID = 1L;
     private static final Long RESTAURANT_ID = 10L;
+    private static final String DISH_NAME = "Hamburguesa Clásica";
+    private static final String DISH_CATEGORY = "Hamburguesas";
+    private static final String DISH_DESCRIPTION = "Deliciosa hamburguesa con carne 100% res";
+    private static final String DISH_IMAGE_URL = "https://example.com/burger.jpg";
 
     @BeforeEach
     void setUp() {
         dishRequestDto = DishRequestDto.builder()
-                .name("Hamburguesa Clásica")
+                .name(DISH_NAME)
                 .price(25000)
-                .description("Deliciosa hamburguesa con carne 100% res")
-                .imageUrl("https://example.com/burger.jpg")
-                .category("Hamburguesas")
+                .description(DISH_DESCRIPTION)
+                .imageUrl(DISH_IMAGE_URL)
+                .category(DISH_CATEGORY)
                 .restaurantId(RESTAURANT_ID)
                 .build();
 
         dish = new Dish(
-                "Hamburguesa Clásica",
+                DISH_NAME,
                 25000,
-                "Deliciosa hamburguesa con carne 100% res",
-                "https://example.com/burger.jpg",
-                "Hamburguesas",
+                DISH_DESCRIPTION,
+                DISH_IMAGE_URL,
+                DISH_CATEGORY,
                 RESTAURANT_ID
         );
 
         savedDish = new Dish(
-                "Hamburguesa Clásica",
+                DISH_NAME,
                 25000,
-                "Deliciosa hamburguesa con carne 100% res",
-                "https://example.com/burger.jpg",
-                "Hamburguesas",
+                DISH_DESCRIPTION,
+                DISH_IMAGE_URL,
+                DISH_CATEGORY,
                 RESTAURANT_ID
         );
         savedDish.setId(DISH_ID);
@@ -81,11 +85,11 @@ class DishHandlerTest {
 
         dishResponseDto = DishResponseDto.builder()
                 .id(DISH_ID)
-                .name("Hamburguesa Clásica")
+                .name(DISH_NAME)
                 .price(25000)
-                .description("Deliciosa hamburguesa con carne 100% res")
-                .imageUrl("https://example.com/burger.jpg")
-                .category("Hamburguesas")
+                .description(DISH_DESCRIPTION)
+                .imageUrl(DISH_IMAGE_URL)
+                .category(DISH_CATEGORY)
                 .active(true)
                 .restaurantId(RESTAURANT_ID)
                 .build();
@@ -106,7 +110,7 @@ class DishHandlerTest {
 
             assertThat(result).isNotNull();
             assertThat(result.getId()).isEqualTo(DISH_ID);
-            assertThat(result.getName()).isEqualTo("Hamburguesa Clásica");
+            assertThat(result.getName()).isEqualTo(DISH_NAME);
             assertThat(result.getPrice()).isEqualTo(25000);
             assertThat(result.getActive()).isTrue();
 
@@ -132,11 +136,11 @@ class DishHandlerTest {
                     .build();
 
             Dish updatedDish = new Dish(
-                    "Hamburguesa Clásica",
+                    DISH_NAME,
                     newPrice,
                     newDescription,
-                    "https://example.com/burger.jpg",
-                    "Hamburguesas",
+                    DISH_IMAGE_URL,
+                    DISH_CATEGORY,
                     RESTAURANT_ID
             );
             updatedDish.setId(DISH_ID);
@@ -144,11 +148,11 @@ class DishHandlerTest {
 
             DishResponseDto updatedResponseDto = DishResponseDto.builder()
                     .id(DISH_ID)
-                    .name("Hamburguesa Clásica")
+                    .name(DISH_NAME)
                     .price(newPrice)
                     .description(newDescription)
-                    .imageUrl("https://example.com/burger.jpg")
-                    .category("Hamburguesas")
+                    .imageUrl(DISH_IMAGE_URL)
+                    .category(DISH_CATEGORY)
                     .active(true)
                     .restaurantId(RESTAURANT_ID)
                     .build();
@@ -180,11 +184,11 @@ class DishHandlerTest {
                     .build();
 
             Dish deactivatedDish = new Dish(
-                    "Hamburguesa Clásica",
+                    DISH_NAME,
                     25000,
-                    "Deliciosa hamburguesa con carne 100% res",
-                    "https://example.com/burger.jpg",
-                    "Hamburguesas",
+                    DISH_DESCRIPTION,
+                    DISH_IMAGE_URL,
+                    DISH_CATEGORY,
                     RESTAURANT_ID
             );
             deactivatedDish.setId(DISH_ID);
@@ -192,11 +196,11 @@ class DishHandlerTest {
 
             DishResponseDto deactivatedResponse = DishResponseDto.builder()
                     .id(DISH_ID)
-                    .name("Hamburguesa Clásica")
+                    .name(DISH_NAME)
                     .price(25000)
-                    .description("Deliciosa hamburguesa con carne 100% res")
-                    .imageUrl("https://example.com/burger.jpg")
-                    .category("Hamburguesas")
+                    .description(DISH_DESCRIPTION)
+                    .imageUrl(DISH_IMAGE_URL)
+                    .category(DISH_CATEGORY)
                     .active(false)
                     .restaurantId(RESTAURANT_ID)
                     .build();
@@ -222,12 +226,12 @@ class DishHandlerTest {
         @Test
         @DisplayName("Should return paginated dishes without category filter")
         void shouldReturnPaginatedDishesWithoutCategoryFilter() {
-            Dish dish1 = createDish(1L, "Hamburguesa", "Hamburguesas");
+            Dish dish1 = createDish(1L, "Hamburguesa", DISH_CATEGORY);
             Dish dish2 = createDish(2L, "Pizza", "Pizzas");
             List<Dish> dishes = Arrays.asList(dish1, dish2);
             PagedResult<Dish> pagedResult = PagedResult.of(dishes, 0, 10, 2, 1);
 
-            DishMenuItemResponseDto menuItem1 = createMenuItemDto(1L, "Hamburguesa", "Hamburguesas");
+            DishMenuItemResponseDto menuItem1 = createMenuItemDto(1L, "Hamburguesa", DISH_CATEGORY);
             DishMenuItemResponseDto menuItem2 = createMenuItemDto(2L, "Pizza", "Pizzas");
 
             when(dishServicePort.getDishesByRestaurant(RESTAURANT_ID, null, 0, 10))
@@ -253,12 +257,12 @@ class DishHandlerTest {
         @Test
         @DisplayName("Should return paginated dishes with category filter")
         void shouldReturnPaginatedDishesWithCategoryFilter() {
-            String category = "Hamburguesas";
-            Dish dish1 = createDish(1L, "Hamburguesa Clásica", category);
+            String category = DISH_CATEGORY;
+            Dish dish1 = createDish(1L, DISH_NAME, category);
             List<Dish> dishes = List.of(dish1);
             PagedResult<Dish> pagedResult = PagedResult.of(dishes, 0, 10, 1, 1);
 
-            DishMenuItemResponseDto menuItem1 = createMenuItemDto(1L, "Hamburguesa Clásica", category);
+            DishMenuItemResponseDto menuItem1 = createMenuItemDto(1L, DISH_NAME, category);
 
             when(dishServicePort.getDishesByRestaurant(RESTAURANT_ID, category, 0, 10))
                     .thenReturn(pagedResult);

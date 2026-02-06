@@ -45,6 +45,9 @@ class RestaurantRestControllerTest {
     private static final String RESTAURANT_PHONE = "+573001234567";
     private static final String RESTAURANT_LOGO_URL = "https://example.com/logo.png";
     private static final String MESSAGE_JSON_PATH = "$.message";
+    private static final String DISHES_ENDPOINT = "/dishes";
+    private static final String CONTENT_LENGTH_JSON_PATH = "$.content.length()";
+    private static final String DISH_NAME = "Hamburguesa Clásica";
 
     @Mock
     private IRestaurantHandler restaurantHandler;
@@ -294,7 +297,7 @@ class RestaurantRestControllerTest {
             // Arrange
             DishMenuItemResponseDto dish1 = DishMenuItemResponseDto.builder()
                     .id(1L)
-                    .name("Hamburguesa Clásica")
+                    .name(DISH_NAME)
                     .price(25000)
                     .description("Deliciosa hamburguesa")
                     .imageUrl("https://example.com/burger.jpg")
@@ -324,14 +327,14 @@ class RestaurantRestControllerTest {
                     .thenReturn(response);
 
             // Act & Assert
-            mockMvc.perform(get(BASE_URL + "/" + RESTAURANT_ID + "/dishes")
+            mockMvc.perform(get(BASE_URL + "/" + RESTAURANT_ID + DISHES_ENDPOINT)
                             .param("page", "0")
                             .param("size", "10"))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.content").isArray())
-                    .andExpect(jsonPath("$.content.length()").value(2))
-                    .andExpect(jsonPath("$.content[0].name").value("Hamburguesa Clásica"))
+                    .andExpect(jsonPath(CONTENT_LENGTH_JSON_PATH).value(2))
+                    .andExpect(jsonPath("$.content[0].name").value(DISH_NAME))
                     .andExpect(jsonPath("$.content[1].name").value("Pizza Margarita"))
                     .andExpect(jsonPath("$.page").value(0))
                     .andExpect(jsonPath("$.size").value(10))
@@ -350,7 +353,7 @@ class RestaurantRestControllerTest {
             String category = "Hamburguesas";
             DishMenuItemResponseDto dish1 = DishMenuItemResponseDto.builder()
                     .id(1L)
-                    .name("Hamburguesa Clásica")
+                    .name(DISH_NAME)
                     .price(25000)
                     .description("Deliciosa hamburguesa")
                     .imageUrl("https://example.com/burger.jpg")
@@ -371,12 +374,12 @@ class RestaurantRestControllerTest {
                     .thenReturn(response);
 
             // Act & Assert
-            mockMvc.perform(get(BASE_URL + "/" + RESTAURANT_ID + "/dishes")
+            mockMvc.perform(get(BASE_URL + "/" + RESTAURANT_ID + DISHES_ENDPOINT)
                             .param("category", category)
                             .param("page", "0")
                             .param("size", "10"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.content.length()").value(1))
+                    .andExpect(jsonPath(CONTENT_LENGTH_JSON_PATH).value(1))
                     .andExpect(jsonPath("$.content[0].category").value(category));
 
             verify(dishHandler).getDishesByRestaurant(RESTAURANT_ID, category, 0, 10);
@@ -400,12 +403,12 @@ class RestaurantRestControllerTest {
                     .thenReturn(emptyResponse);
 
             // Act & Assert
-            mockMvc.perform(get(BASE_URL + "/" + RESTAURANT_ID + "/dishes")
+            mockMvc.perform(get(BASE_URL + "/" + RESTAURANT_ID + DISHES_ENDPOINT)
                             .param("page", "0")
                             .param("size", "10"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content").isArray())
-                    .andExpect(jsonPath("$.content.length()").value(0))
+                    .andExpect(jsonPath(CONTENT_LENGTH_JSON_PATH).value(0))
                     .andExpect(jsonPath("$.totalElements").value(0));
 
             verify(dishHandler).getDishesByRestaurant(RESTAURANT_ID, null, 0, 10);
@@ -429,7 +432,7 @@ class RestaurantRestControllerTest {
                     .thenReturn(response);
 
             // Act & Assert
-            mockMvc.perform(get(BASE_URL + "/" + RESTAURANT_ID + "/dishes"))
+            mockMvc.perform(get(BASE_URL + "/" + RESTAURANT_ID + DISHES_ENDPOINT))
                     .andExpect(status().isOk());
 
             verify(dishHandler).getDishesByRestaurant(RESTAURANT_ID, null, 0, 10);
@@ -450,7 +453,7 @@ class RestaurantRestControllerTest {
                     .thenThrow(new RestaurantNotFoundException(RESTAURANT_ID));
 
             // Act & Assert
-            mockMvc.perform(get(BASE_URL + "/" + RESTAURANT_ID + "/dishes")
+            mockMvc.perform(get(BASE_URL + "/" + RESTAURANT_ID + DISHES_ENDPOINT)
                             .param("page", "0")
                             .param("size", "10"))
                     .andExpect(status().isNotFound())

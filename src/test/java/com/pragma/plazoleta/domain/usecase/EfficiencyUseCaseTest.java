@@ -42,9 +42,35 @@ class EfficiencyUseCaseTest {
     private static final Long ORDER_ID = 100L;
     private static final Long EMPLOYEE_ID = 50L;
 
+    // Helper methods
+    private Restaurant createRestaurant(Long id, Long ownerId) {
+        Restaurant restaurant = new Restaurant();
+        restaurant.setId(id);
+        restaurant.setOwnerId(ownerId);
+        restaurant.setName("Test Restaurant");
+        restaurant.setNit("123456789");
+        restaurant.setAddress("Test Address");
+        restaurant.setPhone("+573001234567");
+        restaurant.setLogoUrl("http://test.com/logo.png");
+        return restaurant;
+    }
+
     @Nested
     @DisplayName("Tests for getOrdersEfficiencyByRestaurant")
     class GetOrdersEfficiencyByRestaurantTests {
+
+        private OrderEfficiency createOrderEfficiency(Long orderId, Long restaurantId) {
+            OrderEfficiency efficiency = new OrderEfficiency();
+            efficiency.setOrderId(orderId);
+            efficiency.setRestaurantId(restaurantId);
+            efficiency.setEmployeeId(EMPLOYEE_ID);
+            efficiency.setEmployeeEmail("employee@test.com");
+            efficiency.setStartTime(LocalDateTime.now().minusMinutes(45));
+            efficiency.setEndTime(LocalDateTime.now());
+            efficiency.setDurationInMinutes(45L);
+            efficiency.setFinalStatus("DELIVERED");
+            return efficiency;
+        }
 
         @Test
         @DisplayName("Should return orders efficiency when owner is valid")
@@ -117,6 +143,17 @@ class EfficiencyUseCaseTest {
     @DisplayName("Tests for getEmployeeRankingByRestaurant")
     class GetEmployeeRankingByRestaurantTests {
 
+        private EmployeeRanking createEmployeeRanking(Long employeeId, Long restaurantId) {
+            EmployeeRanking ranking = new EmployeeRanking();
+            ranking.setEmployeeId(employeeId);
+            ranking.setEmployeeEmail("employee@test.com");
+            ranking.setRestaurantId(restaurantId);
+            ranking.setTotalOrdersCompleted(10L);
+            ranking.setAverageDurationInMinutes(30.5);
+            ranking.setRankingPosition(1);
+            return ranking;
+        }
+
         @Test
         @DisplayName("Should return employee ranking when owner is valid")
         void shouldReturnEmployeeRankingWhenOwnerIsValid() {
@@ -182,42 +219,5 @@ class EfficiencyUseCaseTest {
             // Assert
             assertTrue(result.isEmpty());
         }
-    }
-
-    // Helper methods
-    private Restaurant createRestaurant(Long id, Long ownerId) {
-        Restaurant restaurant = new Restaurant();
-        restaurant.setId(id);
-        restaurant.setOwnerId(ownerId);
-        restaurant.setName("Test Restaurant");
-        restaurant.setNit("123456789");
-        restaurant.setAddress("Test Address");
-        restaurant.setPhone("+573001234567");
-        restaurant.setLogoUrl("http://test.com/logo.png");
-        return restaurant;
-    }
-
-    private OrderEfficiency createOrderEfficiency(Long orderId, Long restaurantId) {
-        OrderEfficiency efficiency = new OrderEfficiency();
-        efficiency.setOrderId(orderId);
-        efficiency.setRestaurantId(restaurantId);
-        efficiency.setEmployeeId(EMPLOYEE_ID);
-        efficiency.setEmployeeEmail("employee@test.com");
-        efficiency.setStartTime(LocalDateTime.now().minusMinutes(45));
-        efficiency.setEndTime(LocalDateTime.now());
-        efficiency.setDurationInMinutes(45L);
-        efficiency.setFinalStatus("DELIVERED");
-        return efficiency;
-    }
-
-    private EmployeeRanking createEmployeeRanking(Long employeeId, Long restaurantId) {
-        EmployeeRanking ranking = new EmployeeRanking();
-        ranking.setEmployeeId(employeeId);
-        ranking.setEmployeeEmail("employee@test.com");
-        ranking.setRestaurantId(restaurantId);
-        ranking.setTotalOrdersCompleted(10L);
-        ranking.setAverageDurationInMinutes(30.5);
-        ranking.setRankingPosition(1);
-        return ranking;
     }
 }

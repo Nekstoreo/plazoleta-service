@@ -35,6 +35,10 @@ class RestaurantHandlerTest {
     private static final String RESTAURANT_ADDRESS = "Calle 123 #45-67";
     private static final String RESTAURANT_PHONE = "+573001234567";
     private static final String RESTAURANT_LOGO_URL = "https://example.com/logo.png";
+    private static final String RESTAURANT_LOGO_ALITAS = "https://example.com/alitas.png";
+    private static final String RESTAURANT_LOGO_BURGER = "https://example.com/burger.png";
+    private static final String RESTAURANT_NAME_ALITAS = "Alitas Locas";
+    private static final String RESTAURANT_NAME_BURGER = "Burger King";
 
     @Mock
     private IRestaurantServicePort restaurantServicePort;
@@ -169,25 +173,25 @@ class RestaurantHandlerTest {
             // Arrange
             Restaurant restaurant1 = new Restaurant();
             restaurant1.setId(1L);
-            restaurant1.setName("Alitas Locas");
-            restaurant1.setLogoUrl("https://example.com/alitas.png");
+            restaurant1.setName(RESTAURANT_NAME_ALITAS);
+            restaurant1.setLogoUrl(RESTAURANT_LOGO_ALITAS);
 
             Restaurant restaurant2 = new Restaurant();
             restaurant2.setId(2L);
-            restaurant2.setName("Burger King");
-            restaurant2.setLogoUrl("https://example.com/burger.png");
+            restaurant2.setName(RESTAURANT_NAME_BURGER);
+            restaurant2.setLogoUrl(RESTAURANT_LOGO_BURGER);
 
             List<Restaurant> restaurants = Arrays.asList(restaurant1, restaurant2);
             PagedResult<Restaurant> pagedResult = PagedResult.of(restaurants, 0, 10, 2, 1);
 
             RestaurantListItemResponse item1 = RestaurantListItemResponse.builder()
-                    .name("Alitas Locas")
-                    .logoUrl("https://example.com/alitas.png")
+                    .name(RESTAURANT_NAME_ALITAS)
+                    .logoUrl(RESTAURANT_LOGO_ALITAS)
                     .build();
 
             RestaurantListItemResponse item2 = RestaurantListItemResponse.builder()
-                    .name("Burger King")
-                    .logoUrl("https://example.com/burger.png")
+                    .name(RESTAURANT_NAME_BURGER)
+                    .logoUrl(RESTAURANT_LOGO_BURGER)
                     .build();
 
             when(restaurantServicePort.getAllRestaurants(0, 10)).thenReturn(pagedResult);
@@ -200,10 +204,10 @@ class RestaurantHandlerTest {
             // Assert
             assertNotNull(result);
             assertEquals(2, result.getContent().size());
-            assertEquals("Alitas Locas", result.getContent().get(0).getName());
-            assertEquals("https://example.com/alitas.png", result.getContent().get(0).getLogoUrl());
-            assertEquals("Burger King", result.getContent().get(1).getName());
-            assertEquals("https://example.com/burger.png", result.getContent().get(1).getLogoUrl());
+            assertEquals(RESTAURANT_NAME_ALITAS, result.getContent().get(0).getName());
+            assertEquals(RESTAURANT_LOGO_ALITAS, result.getContent().get(0).getLogoUrl());
+            assertEquals(RESTAURANT_NAME_BURGER, result.getContent().get(1).getName());
+            assertEquals(RESTAURANT_LOGO_BURGER, result.getContent().get(1).getLogoUrl());
             assertEquals(0, result.getPage());
             assertEquals(10, result.getSize());
             assertEquals(2, result.getTotalElements());

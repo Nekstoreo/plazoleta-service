@@ -23,7 +23,7 @@ public class JwtTokenValidator {
     public String extractEmail(String token) {
         try {
             return extractAllClaims(token).getSubject();
-        } catch (JwtException | IllegalArgumentException e) {
+        } catch (JwtException | IllegalArgumentException _) {
             return null;
         }
     }
@@ -31,7 +31,7 @@ public class JwtTokenValidator {
     public String extractRole(String token) {
         try {
             return extractAllClaims(token).get("role", String.class);
-        } catch (JwtException | IllegalArgumentException e) {
+        } catch (JwtException | IllegalArgumentException _) {
             return null;
         }
     }
@@ -39,7 +39,7 @@ public class JwtTokenValidator {
     public Long extractUserId(String token) {
         try {
             return extractAllClaims(token).get("userId", Long.class);
-        } catch (JwtException | IllegalArgumentException e) {
+        } catch (JwtException | IllegalArgumentException _) {
             return null;
         }
     }
@@ -48,7 +48,7 @@ public class JwtTokenValidator {
         try {
             Claims claims = extractAllClaims(token);
             return !claims.getExpiration().before(new Date());
-        } catch (JwtException | IllegalArgumentException e) {
+        } catch (JwtException | IllegalArgumentException _) {
             return false;
         }
     }

@@ -47,15 +47,21 @@ class DishUseCaseTest {
     private static final Long DISH_ID = 1L;
     private static final Long OWNER_ID = 1L;
     private static final Long RESTAURANT_ID = 10L;
+    private static final String DISH_NAME = "Hamburguesa Clásica";
+    private static final String DISH_CATEGORY = "Hamburguesas";
+    private static final String DISH_IMAGE_URL = "https://example.com/burger.jpg";
+    private static final String ORIGINAL_DESCRIPTION = "Descripción original";
+    private static final String NEW_DESCRIPTION = "Nueva descripción";
+    private static final String DISH_DESCRIPTION = "Deliciosa hamburguesa con carne 100% res";
 
     @BeforeEach
     void setUp() {
         validDish = new Dish(
-                "Hamburguesa Clásica",
+                DISH_NAME,
                 25000,
-                "Deliciosa hamburguesa con carne 100% res",
-                "https://example.com/burger.jpg",
-                "Hamburguesas",
+                DISH_DESCRIPTION,
+                DISH_IMAGE_URL,
+                DISH_CATEGORY,
                 RESTAURANT_ID
         );
 
@@ -95,7 +101,7 @@ class DishUseCaseTest {
 
             assertThat(result).isNotNull();
             assertThat(result.getId()).isEqualTo(1L);
-            assertThat(result.getName()).isEqualTo("Hamburguesa Clásica");
+            assertThat(result.getName()).isEqualTo(DISH_NAME);
             assertThat(result.getPrice()).isEqualTo(25000);
             assertThat(result.getActive()).isTrue();
 
@@ -198,22 +204,22 @@ class DishUseCaseTest {
             String newDescription = "Nueva descripción actualizada";
 
             Dish existingDish = new Dish(
-                    "Hamburguesa Clásica",
+                    DISH_NAME,
                     25000,
-                    "Descripción original",
-                    "https://example.com/burger.jpg",
-                    "Hamburguesas",
+                    ORIGINAL_DESCRIPTION,
+                    DISH_IMAGE_URL,
+                    DISH_CATEGORY,
                     RESTAURANT_ID
             );
             existingDish.setId(DISH_ID);
             existingDish.setActive(true);
 
             Dish updatedDish = new Dish(
-                    "Hamburguesa Clásica",
+                    DISH_NAME,
                     newPrice,
                     newDescription,
-                    "https://example.com/burger.jpg",
-                    "Hamburguesas",
+                    DISH_IMAGE_URL,
+                    DISH_CATEGORY,
                     RESTAURANT_ID
             );
             updatedDish.setId(DISH_ID);
@@ -244,7 +250,7 @@ class DishUseCaseTest {
         void shouldThrowExceptionWhenDishNotFound() {
             when(dishPersistencePort.findById(DISH_ID)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> dishUseCase.updateDish(DISH_ID, 30000, "Nueva descripción", OWNER_ID))
+            assertThatThrownBy(() -> dishUseCase.updateDish(DISH_ID, 30000, NEW_DESCRIPTION, OWNER_ID))
                     .isInstanceOf(DishNotFoundException.class)
                     .hasMessageContaining(DISH_ID.toString());
 
@@ -254,7 +260,7 @@ class DishUseCaseTest {
         @Test
         @DisplayName("Should throw InvalidPriceException when price is invalid")
         void shouldThrowExceptionWhenPriceIsInvalid() {
-            assertThatThrownBy(() -> dishUseCase.updateDish(DISH_ID, 0, "Nueva descripción", OWNER_ID))
+            assertThatThrownBy(() -> dishUseCase.updateDish(DISH_ID, 0, NEW_DESCRIPTION, OWNER_ID))
                     .isInstanceOf(InvalidPriceException.class);
 
             verify(dishPersistencePort, never()).findById(any());
@@ -267,11 +273,11 @@ class DishUseCaseTest {
             Long differentOwnerId = 999L;
 
             Dish existingDish = new Dish(
-                    "Hamburguesa Clásica",
+                    DISH_NAME,
                     25000,
-                    "Descripción original",
-                    "https://example.com/burger.jpg",
-                    "Hamburguesas",
+                    ORIGINAL_DESCRIPTION,
+                    DISH_IMAGE_URL,
+                    DISH_CATEGORY,
                     RESTAURANT_ID
             );
             existingDish.setId(DISH_ID);
@@ -279,7 +285,7 @@ class DishUseCaseTest {
             when(dishPersistencePort.findById(DISH_ID)).thenReturn(Optional.of(existingDish));
             when(restaurantPersistencePort.findById(RESTAURANT_ID)).thenReturn(Optional.of(restaurant));
 
-            assertThatThrownBy(() -> dishUseCase.updateDish(DISH_ID, 30000, "Nueva descripción", differentOwnerId))
+            assertThatThrownBy(() -> dishUseCase.updateDish(DISH_ID, 30000, NEW_DESCRIPTION, differentOwnerId))
                     .isInstanceOf(UserNotRestaurantOwnerException.class);
 
             verify(dishPersistencePort, never()).saveDish(any());
@@ -294,22 +300,22 @@ class DishUseCaseTest {
         @DisplayName("Should update the active flag successfully")
         void shouldUpdateActiveStatusSuccessfully() {
             Dish existingDish = new Dish(
-                    "Hamburguesa Clásica",
+                    DISH_NAME,
                     25000,
-                    "Descripción original",
-                    "https://example.com/burger.jpg",
-                    "Hamburguesas",
+                    ORIGINAL_DESCRIPTION,
+                    DISH_IMAGE_URL,
+                    DISH_CATEGORY,
                     RESTAURANT_ID
             );
             existingDish.setId(DISH_ID);
             existingDish.setActive(true);
 
             Dish updatedDish = new Dish(
-                    "Hamburguesa Clásica",
+                    DISH_NAME,
                     25000,
-                    "Descripción original",
-                    "https://example.com/burger.jpg",
-                    "Hamburguesas",
+                    ORIGINAL_DESCRIPTION,
+                    DISH_IMAGE_URL,
+                    DISH_CATEGORY,
                     RESTAURANT_ID
             );
             updatedDish.setId(DISH_ID);
@@ -350,11 +356,11 @@ class DishUseCaseTest {
         @DisplayName("Should throw UserNotRestaurantOwnerException when user is not the owner")
         void shouldThrowWhenUserIsNotOwner() {
             Dish existingDish = new Dish(
-                    "Hamburguesa Clásica",
+                    DISH_NAME,
                     25000,
-                    "Descripción original",
-                    "https://example.com/burger.jpg",
-                    "Hamburguesas",
+                    ORIGINAL_DESCRIPTION,
+                    DISH_IMAGE_URL,
+                    DISH_CATEGORY,
                     RESTAURANT_ID
             );
             existingDish.setId(DISH_ID);
@@ -386,6 +392,20 @@ class DishUseCaseTest {
     @Nested
     @DisplayName("Get Dishes By Restaurant - Happy Path")
     class GetDishesByRestaurantHappyPath {
+
+        private Dish createDish(Long id, String name, String category) {
+            Dish dish = new Dish(
+                    name,
+                    25000,
+                    "Descripción del plato",
+                    "https://example.com/image.jpg",
+                    category,
+                    RESTAURANT_ID
+            );
+            dish.setId(id);
+            dish.setActive(true);
+            return dish;
+        }
 
         @Test
         @DisplayName("Should return paginated dishes without category filter")
@@ -419,17 +439,17 @@ class DishUseCaseTest {
             PagedResult<Dish> pagedResult = PagedResult.of(dishes, 0, 10, 2, 1);
 
             when(restaurantPersistencePort.findById(RESTAURANT_ID)).thenReturn(Optional.of(restaurant));
-            when(dishPersistencePort.findActiveDishesByRestaurantIdAndCategory(RESTAURANT_ID, "Hamburguesas", 0, 10))
+            when(dishPersistencePort.findActiveDishesByRestaurantIdAndCategory(RESTAURANT_ID, DISH_CATEGORY, 0, 10))
                     .thenReturn(pagedResult);
 
-            PagedResult<Dish> result = dishUseCase.getDishesByRestaurant(RESTAURANT_ID, "Hamburguesas", 0, 10);
+            PagedResult<Dish> result = dishUseCase.getDishesByRestaurant(RESTAURANT_ID, DISH_CATEGORY, 0, 10);
 
             assertThat(result).isNotNull();
             assertThat(result.getContent()).hasSize(2);
-            assertThat(result.getContent()).allMatch(dish -> "Hamburguesas".equals(dish.getCategory()));
+            assertThat(result.getContent()).allMatch(dish -> DISH_CATEGORY.equals(dish.getCategory()));
 
             verify(restaurantPersistencePort).findById(RESTAURANT_ID);
-            verify(dishPersistencePort).findActiveDishesByRestaurantIdAndCategory(RESTAURANT_ID, "Hamburguesas", 0, 10);
+            verify(dishPersistencePort).findActiveDishesByRestaurantIdAndCategory(RESTAURANT_ID, DISH_CATEGORY, 0, 10);
             verify(dishPersistencePort, never()).findActiveDishesByRestaurantId(any(), anyInt(), anyInt());
         }
 
@@ -483,19 +503,5 @@ class DishUseCaseTest {
             verify(dishPersistencePort, never()).findActiveDishesByRestaurantId(any(), anyInt(), anyInt());
             verify(dishPersistencePort, never()).findActiveDishesByRestaurantIdAndCategory(any(), any(), anyInt(), anyInt());
         }
-    }
-
-    private Dish createDish(Long id, String name, String category) {
-        Dish dish = new Dish(
-                name,
-                25000,
-                "Descripción del plato",
-                "https://example.com/image.jpg",
-                category,
-                RESTAURANT_ID
-        );
-        dish.setId(id);
-        dish.setActive(true);
-        return dish;
     }
 }
