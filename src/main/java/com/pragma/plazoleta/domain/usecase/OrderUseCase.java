@@ -124,7 +124,7 @@ public class OrderUseCase implements IOrderServicePort {
     }
 
     @Override
-    public void cancelOrder(Long orderId, Long clientId) {
+    public Order cancelOrder(Long orderId, Long clientId) {
         Order order = orderPersistencePort.findById(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(orderId));
 
@@ -138,9 +138,9 @@ public class OrderUseCase implements IOrderServicePort {
 
         order.setStatus(OrderStatus.CANCELLED);
         order.setUpdatedAt(LocalDateTime.now());
-        orderPersistencePort.saveOrder(order);
-        
-        saveTraceability(order, OrderStatus.PENDING, OrderStatus.CANCELLED, null);
+        Order savedOrder = orderPersistencePort.saveOrder(order);
+        saveTraceability(savedOrder, OrderStatus.PENDING, OrderStatus.CANCELLED, null);
+        return savedOrder;
     }
 
     @Override

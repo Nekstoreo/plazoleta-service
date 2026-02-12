@@ -121,9 +121,16 @@ class OrderRestControllerTest {
     void cancelOrder_shouldReturnOk() throws Exception {
         setAuthenticationWithId(33L, ROLE_CLIENT);
 
-        // Handler void method, just ensure the controller returns OK
+        var response = new OrderResponseDto();
+        response.setId(55L);
+        response.setStatus("CANCELLED");
+
+        given(orderHandler.cancelOrder(eq(55L), eq(33L))).willReturn(response);
+
         mockMvc.perform(post(ORDERS_API_PATH + "/55/cancel"))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(55))
+                .andExpect(jsonPath("$.status").value("CANCELLED"));
     }
 
     @Test

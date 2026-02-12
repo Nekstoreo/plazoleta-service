@@ -22,7 +22,7 @@ public interface IOrderHandler {
 
     OrderResponseDto deliverOrder(DeliverOrderRequestDto request, Long employeeId);
 
-    void cancelOrder(Long orderId, Long clientId);
+    OrderResponseDto cancelOrder(Long orderId, Long clientId);
 
     List<TraceabilityResponseDto> getTraceabilityByOrderId(Long orderId, Long clientId);
 }

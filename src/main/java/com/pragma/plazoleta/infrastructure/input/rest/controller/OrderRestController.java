@@ -237,12 +237,12 @@ public class OrderRestController {
                     content = @Content)
     })
     @PostMapping("/{orderId}/cancel")
-    public ResponseEntity<Void> cancelOrder(
+    public ResponseEntity<OrderResponseDto> cancelOrder(
             @Parameter(description = "ID of the order to cancel", required = true)
             @PathVariable Long orderId) {
         Long clientId = getAuthenticatedUserId();
-        orderHandler.cancelOrder(orderId, clientId);
-        return ResponseEntity.ok().build();
+        OrderResponseDto response = orderHandler.cancelOrder(orderId, clientId);
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Get order traceability",

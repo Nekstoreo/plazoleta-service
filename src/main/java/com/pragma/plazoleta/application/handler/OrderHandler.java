@@ -101,8 +101,9 @@ public class OrderHandler implements IOrderHandler {
     }
 
     @Override
-    public void cancelOrder(Long orderId, Long clientId) {
-        orderServicePort.cancelOrder(orderId, clientId);
+    public OrderResponseDto cancelOrder(Long orderId, Long clientId) {
+        Order cancelledOrder = orderServicePort.cancelOrder(orderId, clientId);
+        return buildOrderResponse(cancelledOrder);
     }
 
     @Override

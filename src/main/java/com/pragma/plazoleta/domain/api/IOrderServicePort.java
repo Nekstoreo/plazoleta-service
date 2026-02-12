@@ -19,7 +19,7 @@ public interface IOrderServicePort {
 
     Order markOrderAsDelivered(Long orderId, Long employeeId, String securityPin);
 
-    void cancelOrder(Long orderId, Long clientId);
+    Order cancelOrder(Long orderId, Long clientId);
 
     List<Traceability> getTraceabilityByOrderId(Long orderId, Long clientId);
 }

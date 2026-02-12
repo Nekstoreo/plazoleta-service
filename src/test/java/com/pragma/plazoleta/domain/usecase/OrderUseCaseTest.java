@@ -1270,9 +1270,9 @@ class OrderUseCaseTest {
             when(orderPersistencePort.findById(ORDER_ID)).thenReturn(Optional.of(pendingOrder));
             when(orderPersistencePort.saveOrder(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-            orderUseCase.cancelOrder(ORDER_ID, CLIENT_ID);
+            Order cancelled = orderUseCase.cancelOrder(ORDER_ID, CLIENT_ID);
 
-            assertThat(pendingOrder.getStatus()).isEqualTo(OrderStatus.CANCELLED);
+            assertThat(cancelled.getStatus()).isEqualTo(OrderStatus.CANCELLED);
             verify(orderPersistencePort).saveOrder(pendingOrder);
         }
 
