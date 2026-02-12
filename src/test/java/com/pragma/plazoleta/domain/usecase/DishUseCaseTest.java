@@ -397,7 +397,7 @@ class DishUseCaseTest {
             Dish dish = new Dish(
                     name,
                     25000,
-                    "Descripción del plato",
+                    "Dish description",
                     "https://example.com/image.jpg",
                     category,
                     RESTAURANT_ID

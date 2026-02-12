@@ -17,15 +17,15 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Solicitud para crear un nuevo pedido")
+@Schema(description = "Request to create a new order")
 public class CreateOrderRequestDto {
 
-    @NotNull(message = "El ID del restaurante es obligatorio")
-    @Schema(description = "ID del restaurante donde se realiza el pedido", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "Restaurant ID is required")
+    @Schema(description = "ID of the restaurant where the order is placed", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
     private Long restaurantId;
 
-    @NotEmpty(message = "El pedido debe contener al menos un plato")
+    @NotEmpty(message = "The order must contain at least one dish")
     @Valid
-    @Schema(description = "Lista de platos con sus cantidades", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "List of dishes with their quantities", requiredMode = Schema.RequiredMode.REQUIRED)
     private List<OrderItemRequestDto> items;
 }

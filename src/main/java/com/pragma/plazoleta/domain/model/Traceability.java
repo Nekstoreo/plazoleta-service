@@ -20,10 +20,10 @@ public class Traceability {
     private Long restaurantId;
 
     public Traceability() {
-                /* Constructor vacío intencional.
-           Requerido por frameworks y bibliotecas de persistencia/serialización
-           (por ejemplo, Jackson, JPA, MapStruct) que instancian la clase mediante reflexión.
-           No debe contener lógica adicional. */
+                /* Empty constructor intentionally left.
+           Required by persistence/serialization frameworks and libraries
+           (e.g., Jackson, JPA, MapStruct) that instantiate the class via reflection.
+           Should not contain additional logic. */
     }
 
 }

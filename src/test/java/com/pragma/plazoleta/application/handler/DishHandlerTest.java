@@ -300,7 +300,7 @@ class DishHandlerTest {
             Dish createdDish = new Dish(
                     name,
                     25000,
-                    "Descripción del plato",
+                    "Dish description", 
                     "https://example.com/image.jpg",
                     category,
                     RESTAURANT_ID
@@ -315,7 +315,7 @@ class DishHandlerTest {
                     .id(id)
                     .name(name)
                     .price(25000)
-                    .description("Descripción del plato")
+                    .description("Dish description")
                     .imageUrl("https://example.com/image.jpg")
                     .category(category)
                     .build();

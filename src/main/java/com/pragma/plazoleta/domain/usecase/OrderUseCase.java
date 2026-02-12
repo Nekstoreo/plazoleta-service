@@ -133,7 +133,7 @@ public class OrderUseCase implements IOrderServicePort {
         }
 
         if (order.getStatus() != OrderStatus.PENDING) {
-            throw new OrderNotCancellableException("Lo sentimos, tu pedido ya está en preparación y no puede cancelarse");
+            throw new OrderNotCancellableException("Sorry, your order is already in preparation and cannot be canceled");
         }
 
         order.setStatus(OrderStatus.CANCELLED);

@@ -223,7 +223,7 @@ class OrderUseCaseTest {
 
             assertThatThrownBy(() -> orderUseCase.createOrder(order))
                     .isInstanceOf(EmptyOrderException.class)
-                    .hasMessageContaining("al menos un plato");
+                    .hasMessageContaining("at least one dish");
 
             verify(orderPersistencePort, never()).saveOrder(any());
         }
@@ -235,7 +235,7 @@ class OrderUseCaseTest {
 
             assertThatThrownBy(() -> orderUseCase.createOrder(order))
                     .isInstanceOf(EmptyOrderException.class)
-                    .hasMessageContaining("al menos un plato");
+                    .hasMessageContaining("at least one dish");
 
             verify(orderPersistencePort, never()).saveOrder(any());
         }
@@ -277,7 +277,7 @@ class OrderUseCaseTest {
             assertThatThrownBy(() -> orderUseCase.createOrder(order))
                     .isInstanceOf(ClientHasActiveOrderException.class)
                     .hasMessageContaining(CLIENT_ID.toString())
-                    .hasMessageContaining("ya tiene un pedido en proceso");
+                    .hasMessageContaining("already has an active order");
 
             verify(orderPersistencePort, never()).saveOrder(any());
         }
@@ -299,7 +299,7 @@ class OrderUseCaseTest {
 
             assertThatThrownBy(() -> orderUseCase.createOrder(order))
                     .isInstanceOf(InvalidQuantityException.class)
-                    .hasMessageContaining("mayor a 0");
+                    .hasMessageContaining("greater than 0");
 
             verify(orderPersistencePort, never()).saveOrder(any());
         }
@@ -378,7 +378,7 @@ class OrderUseCaseTest {
             assertThatThrownBy(() -> orderUseCase.createOrder(order))
                     .isInstanceOf(DishNotActiveException.class)
                     .hasMessageContaining(DISH_ID_1.toString())
-                    .hasMessageContaining("no está disponible");
+                    .hasMessageContaining("not currently available");
 
             verify(orderPersistencePort, never()).saveOrder(any());
         }
@@ -576,9 +576,9 @@ class OrderUseCaseTest {
         Dish dish = new Dish(
                 name,
                 25000,
-                "Descripción del plato",
+                "Dish description",
                 "https://example.com/image.jpg",
-                "Categoría",
+                "Category",
                 restaurantId
         );
         dish.setId(id);
@@ -1310,7 +1310,7 @@ class OrderUseCaseTest {
 
             assertThatThrownBy(() -> orderUseCase.cancelOrder(ORDER_ID, CLIENT_ID))
                     .isInstanceOf(com.pragma.plazoleta.domain.exception.OrderNotCancellableException.class)
-                    .hasMessageContaining("Lo sentimos, tu pedido ya está en preparación y no puede cancelarse");
+                    .hasMessageContaining("Sorry, your order is already in preparation and cannot be canceled");
 
             verify(orderPersistencePort, never()).saveOrder(any());
         }

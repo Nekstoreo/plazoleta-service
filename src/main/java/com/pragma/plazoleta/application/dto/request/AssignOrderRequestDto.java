@@ -13,10 +13,10 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Solicitud para asignar un pedido a un empleado y cambiar su estado")
+@Schema(description = "Request to assign an order to an employee and change its status")
 public class AssignOrderRequestDto {
 
-    @NotNull(message = "El ID del pedido es obligatorio")
-    @Schema(description = "ID del pedido a asignar", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "Order ID is required")
+    @Schema(description = "ID of the order to assign", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
     private Long orderId;
 }

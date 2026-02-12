@@ -12,21 +12,21 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Información de un item del pedido")
+@Schema(description = "Order item information")
 public class OrderItemResponseDto {
 
-    @Schema(description = "ID del item del pedido", example = "1")
+    @Schema(description = "Order item ID", example = "1")
     private Long id;
 
-    @Schema(description = "ID del plato", example = "5")
+    @Schema(description = "Dish ID", example = "5")
     private Long dishId;
 
-    @Schema(description = "Nombre del plato", example = "Hamburguesa Clásica")
+    @Schema(description = "Dish name", example = "Hamburguesa Clásica")
     private String dishName;
 
-    @Schema(description = "Precio unitario del plato", example = "25000")
+    @Schema(description = "Dish unit price", example = "25000")
     private Integer dishPrice;
 
-    @Schema(description = "Cantidad ordenada", example = "2")
+    @Schema(description = "Ordered quantity", example = "2")
     private Integer quantity;
 }

@@ -15,36 +15,36 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Información del pedido creado")
+@Schema(description = "Order information")
 public class OrderResponseDto {
 
-    @Schema(description = "ID del pedido", example = "1")
+    @Schema(description = "Order ID", example = "1")
     private Long id;
 
-    @Schema(description = "ID del cliente", example = "10")
+    @Schema(description = "Client ID", example = "10")
     private Long clientId;
 
-    @Schema(description = "ID del restaurante", example = "3")
+    @Schema(description = "Restaurant ID", example = "3")
     private Long restaurantId;
 
-    @Schema(description = "Nombre del restaurante", example = "Restaurante La Esquina")
+    @Schema(description = "Restaurant name", example = "Restaurante La Esquina")
     private String restaurantName;
 
-    @Schema(description = "ID del empleado asignado", example = "50")
+    @Schema(description = "Assigned employee ID", example = "50")
     private Long employeeId;
 
-    @Schema(description = "Estado actual del pedido", example = "PENDING")
+    @Schema(description = "Current status of the order", example = "PENDING")
     private String status;
 
-    @Schema(description = "Fecha y hora de creación del pedido", example = "2025-12-01T14:30:00")
+    @Schema(description = "Order creation timestamp", example = "2025-12-01T14:30:00")
     private LocalDateTime createdAt;
 
-    @Schema(description = "Fecha y hora de última actualización", example = "2025-12-01T14:30:00")
+    @Schema(description = "Last update timestamp", example = "2025-12-01T14:30:00")
     private LocalDateTime updatedAt;
 
-    @Schema(description = "Pin de seguridad para recoger el pedido", example = "123456")
+    @Schema(description = "Security PIN for order pickup", example = "123456")
     private String securityPin;
 
-    @Schema(description = "Lista de platos del pedido")
+    @Schema(description = "List of order items")
     private List<OrderItemResponseDto> items;
 }

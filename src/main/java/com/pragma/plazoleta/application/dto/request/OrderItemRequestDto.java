@@ -14,15 +14,15 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Representa un item del pedido con el plato y la cantidad")
+@Schema(description = "Represents an order item with the dish and quantity")
 public class OrderItemRequestDto {
 
-    @NotNull(message = "El ID del plato es obligatorio")
-    @Schema(description = "ID del plato a ordenar", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "Dish ID is required")
+    @Schema(description = "ID of the dish to order", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
     private Long dishId;
 
-    @NotNull(message = "La cantidad es obligatoria")
-    @Min(value = 1, message = "La cantidad debe ser mayor a 0")
-    @Schema(description = "Cantidad del plato a ordenar", example = "2", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "Quantity is required")
+    @Min(value = 1, message = "Quantity must be greater than 0")
+    @Schema(description = "Quantity of the dish to order", example = "2", requiredMode = Schema.RequiredMode.REQUIRED)
     private Integer quantity;
 }
