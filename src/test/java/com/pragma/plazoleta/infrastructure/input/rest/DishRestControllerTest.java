@@ -179,7 +179,10 @@ class DishRestControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath(MESSAGE_JSON_PATH).value("Price must be a positive integer greater than zero"));
+                    .andExpect(jsonPath(MESSAGE_JSON_PATH).value("Price must be a positive integer greater than zero"))
+                    .andExpect(jsonPath("$.status").value(400))
+                    .andExpect(jsonPath("$.error").value("Validation Error"))
+                    .andExpect(jsonPath("$.path").value(DISH_CREATE_ENDPOINT));
         }
 
         @Test
