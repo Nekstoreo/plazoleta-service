@@ -5,6 +5,7 @@ import com.pragma.plazoleta.domain.model.PagedResult;
 import com.pragma.plazoleta.domain.model.Restaurant;
 import com.pragma.plazoleta.domain.spi.IRestaurantPersistencePort;
 import com.pragma.plazoleta.domain.spi.IUserValidationPort;
+import com.pragma.plazoleta.infrastructure.constant.SecurityConstants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -25,7 +26,6 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class RestaurantUseCaseTest {
 
-    private static final String ROLE_OWNER = "OWNER";
     private static final Long VALID_OWNER_ID = 1L;
 
     @Mock
@@ -58,7 +58,7 @@ class RestaurantUseCaseTest {
         @DisplayName("Should create restaurant successfully with valid data")
         void shouldCreateRestaurantSuccessfully() {
             // Arrange
-            when(userValidationPort.getUserRoleById(VALID_OWNER_ID)).thenReturn(Optional.of(ROLE_OWNER));
+            when(userValidationPort.getUserRoleById(VALID_OWNER_ID)).thenReturn(Optional.of(SecurityConstants.ROLE_OWNER));
             when(restaurantPersistencePort.existsByNit(anyString())).thenReturn(false);
             when(restaurantPersistencePort.saveRestaurant(any(Restaurant.class))).thenAnswer(invocation -> {
                 Restaurant restaurant = invocation.getArgument(0);
@@ -81,7 +81,7 @@ class RestaurantUseCaseTest {
         void shouldCreateRestaurantWithNameContainingNumbers() {
             // Arrange
             validRestaurant.setName("Restaurant 24h");
-            when(userValidationPort.getUserRoleById(VALID_OWNER_ID)).thenReturn(Optional.of(ROLE_OWNER));
+            when(userValidationPort.getUserRoleById(VALID_OWNER_ID)).thenReturn(Optional.of(SecurityConstants.ROLE_OWNER));
             when(restaurantPersistencePort.existsByNit(anyString())).thenReturn(false);
             when(restaurantPersistencePort.saveRestaurant(any(Restaurant.class))).thenReturn(validRestaurant);
 
@@ -98,7 +98,7 @@ class RestaurantUseCaseTest {
         void shouldCreateRestaurantWithPhoneContainingPlusSymbol() {
             // Arrange
             validRestaurant.setPhone("+573005698325");
-            when(userValidationPort.getUserRoleById(VALID_OWNER_ID)).thenReturn(Optional.of(ROLE_OWNER));
+            when(userValidationPort.getUserRoleById(VALID_OWNER_ID)).thenReturn(Optional.of(SecurityConstants.ROLE_OWNER));
             when(restaurantPersistencePort.existsByNit(anyString())).thenReturn(false);
             when(restaurantPersistencePort.saveRestaurant(any(Restaurant.class))).thenReturn(validRestaurant);
 
@@ -286,7 +286,7 @@ class RestaurantUseCaseTest {
         @DisplayName("Should throw exception when restaurant with NIT already exists")
         void shouldThrowExceptionWhenRestaurantWithNitAlreadyExists() {
             // Arrange
-            when(userValidationPort.getUserRoleById(VALID_OWNER_ID)).thenReturn(Optional.of(ROLE_OWNER));
+            when(userValidationPort.getUserRoleById(VALID_OWNER_ID)).thenReturn(Optional.of(SecurityConstants.ROLE_OWNER));
             when(restaurantPersistencePort.existsByNit(validRestaurant.getNit())).thenReturn(true);
 
             // Act & Assert
