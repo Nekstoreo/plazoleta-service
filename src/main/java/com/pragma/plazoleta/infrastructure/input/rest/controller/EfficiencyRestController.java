@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,15 +25,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/efficiency")
+@RequiredArgsConstructor
 @Tag(name = "Efficiency", description = "API para consultar la eficiencia de pedidos - Solo propietarios")
 @SecurityRequirement(name = "bearerAuth")
 public class EfficiencyRestController {
 
     private final IEfficiencyHandler efficiencyHandler;
-
-    public EfficiencyRestController(IEfficiencyHandler efficiencyHandler) {
-        this.efficiencyHandler = efficiencyHandler;
-    }
 
     @Operation(summary = "Get orders efficiency by restaurant",
             description = "Retrieves the efficiency of all completed orders for a specific restaurant. " +
@@ -56,7 +54,7 @@ public class EfficiencyRestController {
     @GetMapping("/restaurant/{restaurantId}/orders")
     public ResponseEntity<List<OrderEfficiencyResponseDto>> getOrdersEfficiencyByRestaurant(
             @Parameter(description = "ID of the restaurant", required = true)
-            @PathVariable Long restaurantId) {
+            @PathVariable(name = "restaurantId") Long restaurantId) {
         Long ownerId = getAuthenticatedUserId();
         List<OrderEfficiencyResponseDto> response = efficiencyHandler.getOrdersEfficiencyByRestaurant(restaurantId, ownerId);
         return ResponseEntity.ok(response);
@@ -84,7 +82,7 @@ public class EfficiencyRestController {
     @GetMapping("/restaurant/{restaurantId}/employees")
     public ResponseEntity<List<EmployeeRankingResponseDto>> getEmployeeRankingByRestaurant(
             @Parameter(description = "ID of the restaurant", required = true)
-            @PathVariable Long restaurantId) {
+            @PathVariable(name = "restaurantId") Long restaurantId) {
         Long ownerId = getAuthenticatedUserId();
         List<EmployeeRankingResponseDto> response = efficiencyHandler.getEmployeeRankingByRestaurant(restaurantId, ownerId);
         return ResponseEntity.ok(response);

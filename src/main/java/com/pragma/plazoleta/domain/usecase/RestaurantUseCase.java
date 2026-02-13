@@ -6,9 +6,11 @@ import com.pragma.plazoleta.domain.model.PagedResult;
 import com.pragma.plazoleta.domain.model.Restaurant;
 import com.pragma.plazoleta.domain.spi.IRestaurantPersistencePort;
 import com.pragma.plazoleta.domain.spi.IUserValidationPort;
+import lombok.RequiredArgsConstructor;
 
 import java.util.regex.Pattern;
 
+@RequiredArgsConstructor
 public class RestaurantUseCase implements IRestaurantServicePort {
 
     private static final String ROLE_OWNER = "OWNER";
@@ -25,12 +27,6 @@ public class RestaurantUseCase implements IRestaurantServicePort {
 
     private final IRestaurantPersistencePort restaurantPersistencePort;
     private final IUserValidationPort userValidationPort;
-
-    public RestaurantUseCase(IRestaurantPersistencePort restaurantPersistencePort,
-                             IUserValidationPort userValidationPort) {
-        this.restaurantPersistencePort = restaurantPersistencePort;
-        this.userValidationPort = userValidationPort;
-    }
 
     @Override
     public Restaurant createRestaurant(Restaurant restaurant) {

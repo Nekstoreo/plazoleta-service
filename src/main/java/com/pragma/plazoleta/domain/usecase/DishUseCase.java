@@ -11,29 +11,20 @@ import com.pragma.plazoleta.domain.model.PagedResult;
 import com.pragma.plazoleta.domain.model.Restaurant;
 import com.pragma.plazoleta.domain.spi.IDishPersistencePort;
 import com.pragma.plazoleta.domain.spi.IRestaurantPersistencePort;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public class DishUseCase implements IDishServicePort {
 
     private final IDishPersistencePort dishPersistencePort;
     private final IRestaurantPersistencePort restaurantPersistencePort;
 
-    public DishUseCase(IDishPersistencePort dishPersistencePort,
-                       IRestaurantPersistencePort restaurantPersistencePort) {
-        this.dishPersistencePort = dishPersistencePort;
-        this.restaurantPersistencePort = restaurantPersistencePort;
-    }
-
     @Override
     public Dish createDish(Dish dish, Long ownerId) {
         validatePrice(dish.getPrice());
-        
-        Restaurant restaurant = restaurantPersistencePort.findById(dish.getRestaurantId())
-                .orElseThrow(() -> new RestaurantNotFoundException(dish.getRestaurantId()));
-        
-        validateOwnership(restaurant, ownerId);
+        validateRestaurantOwnership(dish.getRestaurantId(), ownerId);
         
         dish.setActive(true);
-        
         return dishPersistencePort.saveDish(dish);
     }
 
@@ -41,14 +32,7 @@ public class DishUseCase implements IDishServicePort {
     public Dish updateDish(Long dishId, Integer price, String description, Long ownerId) {
         validatePrice(price);
 
-        Dish dish = dishPersistencePort.findById(dishId)
-                .orElseThrow(() -> new DishNotFoundException(dishId));
-
-        Restaurant restaurant = restaurantPersistencePort.findById(dish.getRestaurantId())
-                .orElseThrow(() -> new RestaurantNotFoundException(dish.getRestaurantId()));
-
-        validateOwnership(restaurant, ownerId);
-
+        Dish dish = findAndValidateDishOwnership(dishId, ownerId);
         dish.setPrice(price);
         dish.setDescription(description);
 
@@ -61,17 +45,26 @@ public class DishUseCase implements IDishServicePort {
             throw new InvalidActiveStatusException();
         }
 
-        Dish dish = dishPersistencePort.findById(dishId)
-                .orElseThrow(() -> new DishNotFoundException(dishId));
-
-        Restaurant restaurant = restaurantPersistencePort.findById(dish.getRestaurantId())
-                .orElseThrow(() -> new RestaurantNotFoundException(dish.getRestaurantId()));
-
-        validateOwnership(restaurant, ownerId);
-
+        Dish dish = findAndValidateDishOwnership(dishId, ownerId);
         dish.setActive(active);
 
         return dishPersistencePort.saveDish(dish);
+    }
+
+    private Dish findAndValidateDishOwnership(Long dishId, Long ownerId) {
+        Dish dish = dishPersistencePort.findById(dishId)
+                .orElseThrow(() -> new DishNotFoundException(dishId));
+        validateRestaurantOwnership(dish.getRestaurantId(), ownerId);
+        return dish;
+    }
+
+    private void validateRestaurantOwnership(Long restaurantId, Long ownerId) {
+        Restaurant restaurant = restaurantPersistencePort.findById(restaurantId)
+                .orElseThrow(() -> new RestaurantNotFoundException(restaurantId));
+
+        if (!restaurant.getOwnerId().equals(ownerId)) {
+            throw new UserNotRestaurantOwnerException(ownerId, restaurant.getId());
+        }
     }
 
     @Override
@@ -90,12 +83,6 @@ public class DishUseCase implements IDishServicePort {
     private void validatePrice(Integer price) {
         if (price == null || price <= 0) {
             throw new InvalidPriceException();
-        }
-    }
-
-    private void validateOwnership(Restaurant restaurant, Long ownerId) {
-        if (!restaurant.getOwnerId().equals(ownerId)) {
-            throw new UserNotRestaurantOwnerException(ownerId, restaurant.getId());
         }
     }
 }

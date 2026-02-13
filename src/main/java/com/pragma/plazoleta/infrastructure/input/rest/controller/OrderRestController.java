@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -36,15 +37,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/orders")
+@RequiredArgsConstructor
 @Tag(name = "Orders", description = "Order management API for clients and employees")
 @SecurityRequirement(name = "bearerAuth")
 public class OrderRestController {
 
     private final IOrderHandler orderHandler;
-
-    public OrderRestController(IOrderHandler orderHandler) {
-        this.orderHandler = orderHandler;
-    }
 
     @Operation(summary = "Create a new order",
             description = "Creates a new order for the authenticated client. " +
@@ -107,11 +105,11 @@ public class OrderRestController {
                     required = true, 
                     example = "PENDING",
                     schema = @Schema(allowableValues = {"PENDING", "IN_PREPARATION", "READY", "DELIVERED", "CANCELLED"}))
-            @RequestParam String status,
+            @RequestParam(name = "status") String status,
             @Parameter(description = "Page number (0-based)", example = "0")
-            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(name = "page", defaultValue = "0") @Min(0) int page,
             @Parameter(description = "Number of elements per page", example = "10")
-            @RequestParam(defaultValue = "10") @Min(1) int size) {
+            @RequestParam(name = "size", defaultValue = "10") @Min(1) int size) {
         Long employeeId = getAuthenticatedUserId();
         PagedResponse<OrderResponseDto> response = orderHandler.getOrdersByStatus(employeeId, status, page, size);
         return ResponseEntity.ok(response);
@@ -239,7 +237,7 @@ public class OrderRestController {
     @PostMapping("/{orderId}/cancel")
     public ResponseEntity<OrderResponseDto> cancelOrder(
             @Parameter(description = "ID of the order to cancel", required = true)
-            @PathVariable Long orderId) {
+            @PathVariable(name = "orderId") Long orderId) {
         Long clientId = getAuthenticatedUserId();
         OrderResponseDto response = orderHandler.cancelOrder(orderId, clientId);
         return ResponseEntity.ok(response);
@@ -266,7 +264,7 @@ public class OrderRestController {
     @GetMapping("/{orderId}/traceability")
     public ResponseEntity<List<TraceabilityResponseDto>> getTraceabilityByOrderId(
             @Parameter(description = "ID of the order", required = true)
-            @PathVariable Long orderId) {
+            @PathVariable(name = "orderId") Long orderId) {
         Long clientId = getAuthenticatedUserId();
         List<TraceabilityResponseDto> response = orderHandler.getTraceabilityByOrderId(orderId, clientId);
         return ResponseEntity.ok(response);

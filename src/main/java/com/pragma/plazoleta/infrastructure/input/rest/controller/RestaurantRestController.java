@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,17 +30,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/restaurants")
+@RequiredArgsConstructor
 @Tag(name = "Restaurants", description = "Restaurant management API")
 @SecurityRequirement(name = "bearerAuth")
 public class RestaurantRestController {
 
     private final IRestaurantHandler restaurantHandler;
     private final IDishHandler dishHandler;
-
-    public RestaurantRestController(IRestaurantHandler restaurantHandler, IDishHandler dishHandler) {
-        this.restaurantHandler = restaurantHandler;
-        this.dishHandler = dishHandler;
-    }
 
     @Operation(summary = "Create restaurant",
             description = "Creates a new restaurant with the provided data. Only ADMIN users can create restaurants.")
@@ -86,9 +83,9 @@ public class RestaurantRestController {
     @GetMapping
     public ResponseEntity<PagedResponse<RestaurantListItemResponse>> getAllRestaurants(
             @Parameter(description = "Page number (0-based)", example = "0")
-            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(name = "page", defaultValue = "0") @Min(0) int page,
             @Parameter(description = "Number of elements per page", example = "10")
-            @RequestParam(defaultValue = "10") @Min(1) int size) {
+            @RequestParam(name = "size", defaultValue = "10") @Min(1) int size) {
         PagedResponse<RestaurantListItemResponse> response = restaurantHandler.getAllRestaurants(page, size);
         return ResponseEntity.ok(response);
     }
@@ -111,13 +108,13 @@ public class RestaurantRestController {
     @GetMapping("/{restaurantId}/dishes")
     public ResponseEntity<PagedResponse<DishMenuItemResponseDto>> getDishesByRestaurant(
             @Parameter(description = "ID of the restaurant", required = true)
-            @PathVariable Long restaurantId,
+            @PathVariable(name = "restaurantId") Long restaurantId,
             @Parameter(description = "Category to filter dishes (optional)", example = "MAIN_COURSE")
-            @RequestParam(required = false) String category,
+            @RequestParam(name = "category", required = false) String category,
             @Parameter(description = "Page number (0-based)", example = "0")
-            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(name = "page", defaultValue = "0") @Min(0) int page,
             @Parameter(description = "Number of elements per page", example = "10")
-            @RequestParam(defaultValue = "10") @Min(1) int size) {
+            @RequestParam(name = "size", defaultValue = "10") @Min(1) int size) {
         PagedResponse<DishMenuItemResponseDto> response = dishHandler.getDishesByRestaurant(
                 restaurantId, category, page, size);
         return ResponseEntity.ok(response);
