@@ -1,5 +1,7 @@
 package com.pragma.plazoleta.infrastructure.configuration;
 
+import com.pragma.plazoleta.infrastructure.constant.ApiConstants;
+import com.pragma.plazoleta.infrastructure.constant.SecurityConstants;
 import com.pragma.plazoleta.infrastructure.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -20,8 +22,6 @@ public class SecurityConfiguration {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    private static final String ROLE_EMPLOYEE = "EMPLOYEE";
-    private static final String ROLE_OWNER = "OWNER";
     @Value("${app.orders.path:/api/v1/orders}")
     private String ordersPath;
 
@@ -36,20 +36,20 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api-docs/**",
+                                ApiConstants.API_DOCS_PATH + "/**",
                                 "/swagger-ui/**",
-                                "/swagger-ui.html"
+                                ApiConstants.SWAGGER_PATH
                         ).permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/restaurants").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/v1/restaurants").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/restaurants/*/dishes").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/dishes").hasRole(ROLE_OWNER)
-                        .requestMatchers(HttpMethod.PATCH, "/api/v1/dishes/**").hasRole(ROLE_OWNER)
-                        .requestMatchers(HttpMethod.GET, "/api/v1/efficiency/**").hasRole(ROLE_OWNER)
-                        .requestMatchers(HttpMethod.POST, ordersPath).hasRole("CLIENT")
-                        .requestMatchers(HttpMethod.GET, ordersPath).hasRole(ROLE_EMPLOYEE)
-                        .requestMatchers(HttpMethod.PUT, ordersPath).hasRole(ROLE_EMPLOYEE)
-                        .requestMatchers(HttpMethod.PATCH, ordersPath + "/**").hasRole(ROLE_EMPLOYEE)
+                        .requestMatchers(HttpMethod.POST, ApiConstants.RESTAURANTS_BASE_PATH).hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, ApiConstants.RESTAURANTS_BASE_PATH).authenticated()
+                        .requestMatchers(HttpMethod.GET, ApiConstants.RESTAURANTS_BASE_PATH + "/*/dishes").authenticated()
+                        .requestMatchers(HttpMethod.POST, ApiConstants.DISHES_BASE_PATH).hasRole(SecurityConstants.ROLE_OWNER)
+                        .requestMatchers(HttpMethod.PATCH, ApiConstants.DISHES_BASE_PATH + "/**").hasRole(SecurityConstants.ROLE_OWNER)
+                        .requestMatchers(HttpMethod.GET, ApiConstants.EFFICIENCY_BASE_PATH + "/**").hasRole(SecurityConstants.ROLE_OWNER)
+                        .requestMatchers(HttpMethod.POST, ordersPath).hasRole(SecurityConstants.ROLE_CLIENT)
+                        .requestMatchers(HttpMethod.GET, ordersPath).hasRole(SecurityConstants.ROLE_EMPLOYEE)
+                        .requestMatchers(HttpMethod.PUT, ordersPath).hasRole(SecurityConstants.ROLE_EMPLOYEE)
+                        .requestMatchers(HttpMethod.PATCH, ordersPath + "/**").hasRole(SecurityConstants.ROLE_EMPLOYEE)
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
