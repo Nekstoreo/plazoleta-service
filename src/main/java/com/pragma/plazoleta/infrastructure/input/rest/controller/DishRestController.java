@@ -5,6 +5,7 @@ import com.pragma.plazoleta.application.dto.request.DishRequestDto;
 import com.pragma.plazoleta.application.dto.request.DishUpdateRequestDto;
 import com.pragma.plazoleta.application.dto.response.DishResponseDto;
 import com.pragma.plazoleta.application.handler.IDishHandler;
+import com.pragma.plazoleta.infrastructure.constant.ApiConstants;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -22,7 +23,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/dishes")
+@RequestMapping(ApiConstants.DISHES_BASE_PATH)
 @RequiredArgsConstructor
 @Tag(name = "Dishes", description = "Dish management endpoints")
 @SecurityRequirement(name = "bearerAuth")

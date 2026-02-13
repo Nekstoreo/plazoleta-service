@@ -7,6 +7,7 @@ import com.pragma.plazoleta.application.dto.response.RestaurantListItemResponse;
 import com.pragma.plazoleta.application.dto.response.RestaurantResponse;
 import com.pragma.plazoleta.application.handler.IDishHandler;
 import com.pragma.plazoleta.application.handler.IRestaurantHandler;
+import com.pragma.plazoleta.infrastructure.constant.ApiConstants;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -29,7 +30,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/restaurants")
+@RequestMapping(ApiConstants.RESTAURANTS_BASE_PATH)
 @RequiredArgsConstructor
 @Tag(name = "Restaurants", description = "Restaurant management API")
 @SecurityRequirement(name = "bearerAuth")

@@ -7,6 +7,7 @@ import com.pragma.plazoleta.application.dto.request.MarkOrderReadyRequestDto;
 import com.pragma.plazoleta.application.dto.response.OrderResponseDto;
 import com.pragma.plazoleta.application.dto.response.PagedResponse;
 import com.pragma.plazoleta.application.handler.IOrderHandler;
+import com.pragma.plazoleta.infrastructure.constant.ApiConstants;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -36,7 +37,7 @@ import com.pragma.plazoleta.application.dto.response.TraceabilityResponseDto;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/orders")
+@RequestMapping(ApiConstants.ORDERS_BASE_PATH)
 @RequiredArgsConstructor
 @Tag(name = "Orders", description = "Order management API for clients and employees")
 @SecurityRequirement(name = "bearerAuth")
