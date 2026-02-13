@@ -6,24 +6,12 @@ import com.pragma.plazoleta.domain.model.PagedResult;
 import com.pragma.plazoleta.domain.model.Restaurant;
 import com.pragma.plazoleta.domain.spi.IRestaurantPersistencePort;
 import com.pragma.plazoleta.domain.spi.IUserValidationPort;
+import com.pragma.plazoleta.infrastructure.constant.SecurityConstants;
+import com.pragma.plazoleta.infrastructure.constant.ValidationConstants;
 import lombok.RequiredArgsConstructor;
-
-import java.util.regex.Pattern;
 
 @RequiredArgsConstructor
 public class RestaurantUseCase implements IRestaurantServicePort {
-
-    private static final String ROLE_OWNER = "OWNER";
-    private static final int MAX_PHONE_LENGTH = 13;
-
-    // Name can contain letters, numbers and spaces, but not ONLY numbers
-    private static final Pattern NAME_ONLY_NUMBERS_PATTERN = Pattern.compile("^\\d+$");
-
-    // NIT must be numeric only
-    private static final Pattern NIT_PATTERN = Pattern.compile("^\\d+$");
-
-    // Phone: max 13 chars, can contain + at start, rest must be digits
-    private static final Pattern PHONE_PATTERN = Pattern.compile("^\\+?\\d{1,12}$");
 
     private final IRestaurantPersistencePort restaurantPersistencePort;
     private final IUserValidationPort userValidationPort;
@@ -52,7 +40,7 @@ public class RestaurantUseCase implements IRestaurantServicePort {
             throw new InvalidRestaurantNameException("Restaurant name is required");
         }
 
-        if (NAME_ONLY_NUMBERS_PATTERN.matcher(name.trim()).matches()) {
+        if (ValidationConstants.NAME_ONLY_NUMBERS_PATTERN.matcher(name.trim()).matches()) {
             throw new InvalidRestaurantNameException(
                     "Restaurant name can contain numbers but cannot consist of only numbers"
             );
@@ -64,7 +52,7 @@ public class RestaurantUseCase implements IRestaurantServicePort {
             throw new InvalidNitException("NIT is required");
         }
 
-        if (!NIT_PATTERN.matcher(nit).matches()) {
+        if (!ValidationConstants.NIT_PATTERN.matcher(nit).matches()) {
             throw new InvalidNitException("NIT must be numeric only");
         }
     }
@@ -74,13 +62,13 @@ public class RestaurantUseCase implements IRestaurantServicePort {
             throw new InvalidPhoneException("Phone is required");
         }
 
-        if (phone.length() > MAX_PHONE_LENGTH) {
+        if (phone.length() > ValidationConstants.MAX_PHONE_LENGTH) {
             throw new InvalidPhoneException(
                     "Phone must have a maximum of 13 characters"
             );
         }
 
-        if (!PHONE_PATTERN.matcher(phone).matches()) {
+        if (!ValidationConstants.PHONE_PATTERN.matcher(phone).matches()) {
             throw new InvalidPhoneException(
                     "Phone must be numeric and may contain the + symbol at the start. Example: +573005698325"
             );
@@ -97,7 +85,7 @@ public class RestaurantUseCase implements IRestaurantServicePort {
                         "User with ID " + ownerId + " does not exist"
                 ));
 
-        if (!ROLE_OWNER.equals(role)) {
+        if (!SecurityConstants.ROLE_OWNER.equals(role)) {
             throw new UserNotOwnerException(
                     "User with ID " + ownerId + " does not have the OWNER role"
             );
