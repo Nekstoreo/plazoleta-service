@@ -1,15 +1,17 @@
 package com.pragma.plazoleta.infrastructure.output.jpa.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "restaurants")
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class RestaurantEntity {
@@ -30,9 +32,16 @@ public class RestaurantEntity {
     @Column(nullable = false, length = 13)
     private String phone;
 
-    @Column(name = "logo_url", nullable = false)
+    @Column(nullable = false)
     private String logoUrl;
 
-    @Column(name = "owner_id", nullable = false)
+    @Column(nullable = false)
     private Long ownerId;
+
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 }
