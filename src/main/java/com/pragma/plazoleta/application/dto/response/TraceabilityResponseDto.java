@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -21,4 +22,6 @@ public class TraceabilityResponseDto {
     private String newStatus;
     private Long employeeId;
     private String employeeEmail;
+    private List<TraceabilityOrderItemDto> orderItems;
+    private Long totalOrderAmount;
 }

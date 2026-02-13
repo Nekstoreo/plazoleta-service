@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Setter
 @Getter
@@ -18,6 +20,8 @@ public class Traceability {
     private Long employeeId;
     private String employeeEmail;
     private Long restaurantId;
+    private List<TraceabilityOrderItem> orderItems = new ArrayList<>();
+    private Long totalOrderAmount;
 
     public Traceability() {
                 /* Empty constructor intentionally left.
