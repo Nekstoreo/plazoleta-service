@@ -1,5 +1,16 @@
 package com.pragma.plazoleta.domain.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Dish {
 
     private Long id;
@@ -8,14 +19,11 @@ public class Dish {
     private String description;
     private String imageUrl;
     private String category;
-    private Boolean active;
+    @Builder.Default
+    private Boolean active = true;
     private Long restaurantId;
 
-    public Dish() {
-    }
-
-    public Dish(String name, Integer price, String description, String imageUrl, 
-                String category, Long restaurantId) {
+    public Dish(String name, Integer price, String description, String imageUrl, String category, Long restaurantId) {
         this.name = name;
         this.price = price;
         this.description = description;
@@ -23,69 +31,5 @@ public class Dish {
         this.category = category;
         this.restaurantId = restaurantId;
         this.active = true;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Integer getPrice() {
-        return price;
-    }
-
-    public void setPrice(Integer price) {
-        this.price = price;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
-    public Boolean getActive() {
-        return active;
-    }
-
-    public void setActive(Boolean active) {
-        this.active = active;
-    }
-
-    public Long getRestaurantId() {
-        return restaurantId;
-    }
-
-    public void setRestaurantId(Long restaurantId) {
-        this.restaurantId = restaurantId;
     }
 }
