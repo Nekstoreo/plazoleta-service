@@ -6,6 +6,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
+
+import com.pragma.plazoleta.application.dto.response.TraceabilityOrderItemDto;
 
 @Getter
 @Setter
@@ -22,4 +25,6 @@ public class TraceabilityResponseDto {
     private Long employeeId;
     private String employeeEmail;
     private Long restaurantId;
+    private List<TraceabilityOrderItemDto> orderItems;
+    private Long totalOrderAmount;
 }
