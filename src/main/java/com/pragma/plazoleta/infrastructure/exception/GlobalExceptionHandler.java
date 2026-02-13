@@ -109,9 +109,10 @@ public class GlobalExceptionHandler {
         @ExceptionHandler(MethodArgumentNotValidException.class)
         public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(
                         MethodArgumentNotValidException ex, HttpServletRequest request) {
-                // Use first validation message as main message for consistency
+                // Use a sorted list of messages to ensure deterministic behavior in tests
                 String message = ex.getBindingResult().getFieldErrors().stream()
                                 .map(FieldError::getDefaultMessage)
+                                .sorted()
                                 .findFirst()
                                 .orElse("Input data validation error");
 
