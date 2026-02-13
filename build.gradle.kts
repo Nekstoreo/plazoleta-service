@@ -31,11 +31,14 @@ extra.apply {
     set("postgresVersion", "42.7.3")
     set("lombokVersion", "1.18.42")
     set("lombokMapstructBindingVersion", "0.2.0")
+    set("flywayVersion", "10.15.0")
     set("openfeignVersion", "5.0.0")
 }
 
 dependencies {
     // Implementation
+    implementation("org.springframework.boot:spring-boot-starter-flyway")
+    implementation("org.flywaydb:flyway-database-postgresql")
     implementation("io.jsonwebtoken:jjwt-api:${property("jjwtVersion")}")
     implementation("org.mapstruct:mapstruct:${property("mapstructVersion")}")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:${property("springdocVersion")}")
