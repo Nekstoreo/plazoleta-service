@@ -1,6 +1,8 @@
 package com.pragma.plazoleta.infrastructure.output.feign.mapper;
 
 import com.pragma.plazoleta.domain.model.Traceability;
+import com.pragma.plazoleta.domain.model.TraceabilityOrderItem;
+import com.pragma.plazoleta.application.dto.response.TraceabilityOrderItemDto;
 import com.pragma.plazoleta.infrastructure.output.feign.dto.TraceabilityRequestDto;
 import com.pragma.plazoleta.infrastructure.output.feign.dto.TraceabilityResponseDto;
 import org.junit.jupiter.api.Test;
@@ -26,6 +28,8 @@ class TraceabilityFeignMapperTest {
         t.setEmployeeId(5L);
         t.setEmployeeEmail("e@e.com");
         t.setRestaurantId(7L);
+        t.setOrderItems(List.of(createItem()));
+        t.setTotalOrderAmount(2100L);
 
         TraceabilityRequestDto dto = mapper.toRequest(t);
 
@@ -34,6 +38,8 @@ class TraceabilityFeignMapperTest {
         assertThat(dto.getClientEmail()).isEqualTo(t.getClientEmail());
         assertThat(dto.getNewStatus()).isEqualTo(t.getNewStatus());
         assertThat(dto.getEmployeeId()).isEqualTo(t.getEmployeeId());
+        assertThat(dto.getOrderItems()).hasSize(1);
+        assertThat(dto.getTotalOrderAmount()).isEqualTo(2100L);
     }
 
     @Test
@@ -46,6 +52,7 @@ class TraceabilityFeignMapperTest {
         r.setDate(LocalDateTime.now());
         r.setPreviousStatus("PENDING");
         r.setNewStatus("READY");
+        r.setOrderItems(List.of(new TraceabilityOrderItemDto()));
 
         Traceability t = mapper.toModel(r);
 
@@ -54,6 +61,7 @@ class TraceabilityFeignMapperTest {
         assertThat(t.getOrderId()).isEqualTo(r.getOrderId());
         assertThat(t.getNewStatus()).isEqualTo(r.getNewStatus());
         assertThat(t.getDate()).isEqualTo(r.getDate());
+        assertThat(t.getOrderItems()).hasSize(1);
     }
 
     @Test
@@ -68,5 +76,16 @@ class TraceabilityFeignMapperTest {
         assertThat(list).hasSize(2);
         assertThat(list.get(0).getId()).isEqualTo("1");
         assertThat(list.get(1).getId()).isEqualTo("2");
+    }
+
+    private TraceabilityOrderItem createItem() {
+        TraceabilityOrderItem item = new TraceabilityOrderItem();
+        item.setDishId(1L);
+        item.setDishName("Ceviche");
+        item.setQuantity(2);
+        item.setUnitPrice(400L);
+        item.setLinePrice(800L);
+        item.setCategory("Seafood");
+        return item;
     }
 }

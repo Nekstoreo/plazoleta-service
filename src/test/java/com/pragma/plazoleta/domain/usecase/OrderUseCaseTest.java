@@ -47,6 +47,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -135,7 +136,7 @@ class OrderUseCaseTest {
 
             verify(restaurantPersistencePort).findById(RESTAURANT_ID);
             verify(orderPersistencePort).existsActiveOrderByClientId(CLIENT_ID);
-            verify(dishPersistencePort).findById(DISH_ID_1);
+            verify(dishPersistencePort, atLeastOnce()).findById(DISH_ID_1);
             verify(orderPersistencePort).saveOrder(any(Order.class));
         }
 
@@ -160,8 +161,8 @@ class OrderUseCaseTest {
             assertThat(result).isNotNull();
             assertThat(result.getItems()).hasSize(2);
 
-            verify(dishPersistencePort).findById(DISH_ID_1);
-            verify(dishPersistencePort).findById(DISH_ID_2);
+            verify(dishPersistencePort, atLeastOnce()).findById(DISH_ID_1);
+            verify(dishPersistencePort, atLeastOnce()).findById(DISH_ID_2);
         }
 
         @Test

@@ -2,6 +2,7 @@ package com.pragma.plazoleta.application.mapper;
 
 import com.pragma.plazoleta.application.dto.response.TraceabilityResponseDto;
 import com.pragma.plazoleta.domain.model.Traceability;
+import com.pragma.plazoleta.domain.model.TraceabilityOrderItem;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 
@@ -23,6 +24,8 @@ class TraceabilityDtoMapperTest {
         t.setDate(LocalDateTime.now());
         t.setPreviousStatus("PENDING");
         t.setNewStatus("IN_PREPARATION");
+        t.setOrderItems(List.of(createItem()));
+        t.setTotalOrderAmount(1234L);
 
         TraceabilityResponseDto dto = mapper.toResponse(t);
 
@@ -33,6 +36,9 @@ class TraceabilityDtoMapperTest {
         assertThat(dto.getDate()).isEqualTo(t.getDate());
         assertThat(dto.getPreviousStatus()).isEqualTo(t.getPreviousStatus());
         assertThat(dto.getNewStatus()).isEqualTo(t.getNewStatus());
+        assertThat(dto.getOrderItems()).hasSize(1);
+        assertThat(dto.getOrderItems().get(0).getDishName()).isEqualTo("Burger");
+        assertThat(dto.getTotalOrderAmount()).isEqualTo(1234L);
     }
 
     @Test
@@ -57,5 +63,15 @@ class TraceabilityDtoMapperTest {
     @Test
     void toResponseList_shouldReturnNull_whenListIsNull() {
         assertThat(mapper.toResponseList(null)).isNull();
+    }
+
+    private TraceabilityOrderItem createItem() {
+        TraceabilityOrderItem item = new TraceabilityOrderItem();
+        item.setDishId(5L);
+        item.setDishName("Burger");
+        item.setQuantity(2);
+        item.setUnitPrice(550L);
+        item.setLinePrice(1100L);
+        return item;
     }
 }

@@ -8,6 +8,7 @@ import com.pragma.plazoleta.domain.spi.*;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 public class OrderUseCase implements IOrderServicePort {
 
@@ -167,7 +168,56 @@ public class OrderUseCase implements IOrderServicePort {
         if (employeeId != null) {
             traceability.setEmployeeEmail(employeeRestaurantPort.getEmployeeEmailById(employeeId).orElse(null));
         }
+        traceability.setOrderItems(buildTraceabilityItems(order));
+        traceability.setTotalOrderAmount(calculateTotalOrderAmount(traceability.getOrderItems()));
         traceabilityPort.saveTraceability(traceability);
+    }
+
+    private List<TraceabilityOrderItem> buildTraceabilityItems(Order order) {
+        if (order == null || order.getItems() == null || order.getItems().isEmpty()) {
+            return List.of();
+        }
+        return order.getItems().stream()
+                .map(this::mapToTraceabilityOrderItem)
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    private TraceabilityOrderItem mapToTraceabilityOrderItem(OrderItem orderItem) {
+        if (orderItem == null) {
+            return null;
+        }
+
+        TraceabilityOrderItem traceabilityOrderItem = new TraceabilityOrderItem();
+        traceabilityOrderItem.setDishId(orderItem.getDishId());
+        traceabilityOrderItem.setQuantity(orderItem.getQuantity());
+
+        dishPersistencePort.findById(orderItem.getDishId()).ifPresent(dish -> {
+            traceabilityOrderItem.setDishName(dish.getName());
+            traceabilityOrderItem.setCategory(dish.getCategory());
+            if (dish.getPrice() != null) {
+                traceabilityOrderItem.setUnitPrice(dish.getPrice().longValue());
+            }
+        });
+
+        if (traceabilityOrderItem.getUnitPrice() != null && traceabilityOrderItem.getQuantity() != null) {
+            traceabilityOrderItem.setLinePrice(traceabilityOrderItem.getUnitPrice() * traceabilityOrderItem.getQuantity());
+        }
+
+        return traceabilityOrderItem;
+    }
+
+    private Long calculateTotalOrderAmount(List<TraceabilityOrderItem> orderItems) {
+        if (orderItems == null || orderItems.isEmpty()) {
+            return 0L;
+        }
+        long total = 0L;
+        for (TraceabilityOrderItem item : orderItems) {
+            if (item != null && item.getLinePrice() != null) {
+                total += item.getLinePrice();
+            }
+        }
+        return total;
     }
 
     private void sendOrderReadyNotification(Order order) {

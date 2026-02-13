@@ -5,6 +5,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
+import com.pragma.plazoleta.application.dto.response.TraceabilityOrderItemDto;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -18,4 +22,6 @@ public class TraceabilityRequestDto {
     private Long employeeId;
     private String employeeEmail;
     private Long restaurantId;
+    private List<TraceabilityOrderItemDto> orderItems;
+    private Long totalOrderAmount;
 }
