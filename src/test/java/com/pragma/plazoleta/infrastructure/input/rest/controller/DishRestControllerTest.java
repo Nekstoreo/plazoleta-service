@@ -1,4 +1,4 @@
-package com.pragma.plazoleta.infrastructure.input.rest;
+package com.pragma.plazoleta.infrastructure.input.rest.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pragma.plazoleta.application.dto.request.DishActiveRequestDto;
@@ -12,6 +12,7 @@ import com.pragma.plazoleta.domain.exception.InvalidPriceException;
 import com.pragma.plazoleta.domain.exception.RestaurantNotFoundException;
 import com.pragma.plazoleta.domain.exception.UserNotRestaurantOwnerException;
 import com.pragma.plazoleta.infrastructure.exception.GlobalExceptionHandler;
+import com.pragma.plazoleta.infrastructure.input.rest.controller.DishRestController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
