@@ -1,10 +1,10 @@
 CREATE TABLE restaurants (
     id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    nit VARCHAR(255) NOT NULL UNIQUE,
-    address VARCHAR(255) NOT NULL,
-    phone VARCHAR(13) NOT NULL,
-    logo_url VARCHAR(255) NOT NULL,
+    name VARCHAR2(255) NOT NULL,
+    nit VARCHAR2(255) NOT NULL UNIQUE,
+    address VARCHAR2(255) NOT NULL,
+    phone VARCHAR2(13) NOT NULL,
+    logo_url VARCHAR2(255) NOT NULL,
     owner_id BIGINT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -12,11 +12,11 @@ CREATE TABLE restaurants (
 
 CREATE TABLE dishes (
     id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
+    name VARCHAR2(255) NOT NULL,
     price INTEGER NOT NULL,
-    description VARCHAR(500) NOT NULL,
-    image_url VARCHAR(255) NOT NULL,
-    category VARCHAR(255) NOT NULL,
+    description VARCHAR2(500) NOT NULL,
+    image_url VARCHAR2(255) NOT NULL,
+    category VARCHAR2(255) NOT NULL,
     active BOOLEAN NOT NULL DEFAULT TRUE,
     restaurant_id BIGINT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -29,8 +29,8 @@ CREATE TABLE orders (
     client_id BIGINT NOT NULL,
     restaurant_id BIGINT NOT NULL,
     employee_id BIGINT,
-    status VARCHAR(20) NOT NULL,
-    security_pin VARCHAR(6),
+    status VARCHAR2(20) NOT NULL,
+    security_pin VARCHAR2(6),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_order_restaurant FOREIGN KEY (restaurant_id) REFERENCES restaurants(id)
