@@ -5,6 +5,17 @@ plugins {
     jacoco
 }
 
+val jacocoExcludes = listOf(
+    "**/infrastructure/configuration/**",
+    "**/infrastructure/initialization/**",
+    "**/*Configuration.class",
+    "**/*Config.class",
+    "**/*Application.class",
+    "**/*Dto.class",
+    "**/*Request.class",
+    "**/*Response.class"
+)
+
 group = "com.pragma"
 version = "0.0.1-SNAPSHOT"
 
@@ -74,6 +85,13 @@ tasks.withType<Test> {
 
 tasks.jacocoTestReport {
     dependsOn(tasks.test)
+    classDirectories.setFrom(
+        files(classDirectories.files.map { directory ->
+            fileTree(directory) {
+                exclude(jacocoExcludes)
+            }
+        })
+    )
     reports {
         xml.required = true
         html.required = true
@@ -81,6 +99,68 @@ tasks.jacocoTestReport {
     }
 }
 
+tasks.jacocoTestCoverageVerification {
+    dependsOn(tasks.test)
+    classDirectories.setFrom(
+        files(classDirectories.files.map { directory ->
+            fileTree(directory) {
+                exclude(jacocoExcludes)
+            }
+        })
+    )
+    violationRules {
+        rule {
+            element = "PACKAGE"
+            includes = listOf("com/pragma/*/domain/usecase*")
+            limit {
+                counter = "LINE"
+                value = "COVEREDRATIO"
+                minimum = "0.95".toBigDecimal()
+            }
+        }
+        rule {
+            element = "PACKAGE"
+            includes = listOf("com/pragma/*/domain/model*")
+            limit {
+                counter = "LINE"
+                value = "COVEREDRATIO"
+                minimum = "0.90".toBigDecimal()
+            }
+        }
+        rule {
+            element = "PACKAGE"
+            includes = listOf("com/pragma/*/application*")
+            limit {
+                counter = "LINE"
+                value = "COVEREDRATIO"
+                minimum = "0.85".toBigDecimal()
+            }
+        }
+        rule {
+            element = "PACKAGE"
+            includes = listOf("com/pragma/*/infrastructure/input*")
+            limit {
+                counter = "LINE"
+                value = "COVEREDRATIO"
+                minimum = "0.75".toBigDecimal()
+            }
+        }
+        rule {
+            element = "PACKAGE"
+            includes = listOf("com/pragma/*/infrastructure/output*")
+            limit {
+                counter = "LINE"
+                value = "COVEREDRATIO"
+                minimum = "0.70".toBigDecimal()
+            }
+        }
+    }
+}
+
 tasks.test {
     finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.check {
+    dependsOn(tasks.jacocoTestCoverageVerification)
 }
