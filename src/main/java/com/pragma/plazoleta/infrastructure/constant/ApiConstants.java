@@ -8,13 +8,13 @@ public final class ApiConstants {
 
     public static final String API_VERSION = "/api/v1";
 
-    public static final String RESTAURANTS_BASE_PATH = API_VERSION + "/restaurants";
-    public static final String DISHES_BASE_PATH = API_VERSION + "/dishes";
-    public static final String ORDERS_BASE_PATH = API_VERSION + "/orders";
-    public static final String EFFICIENCY_BASE_PATH = API_VERSION + "/efficiency";
-
     public static final String DISHES_SUFFIX = "/dishes";
     public static final String CATEGORIES_SUFFIX = "/categories";
+
+    public static final String RESTAURANTS_BASE_PATH = API_VERSION + "/restaurants";
+    public static final String DISHES_BASE_PATH = API_VERSION + DISHES_SUFFIX;
+    public static final String ORDERS_BASE_PATH = API_VERSION + "/orders";
+    public static final String EFFICIENCY_BASE_PATH = API_VERSION + "/efficiency";
 
     public static final String SWAGGER_PATH = "/swagger-ui.html";
     public static final String API_DOCS_PATH = "/api-docs";
